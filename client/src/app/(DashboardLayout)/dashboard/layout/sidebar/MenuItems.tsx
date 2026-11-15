@@ -20,14 +20,14 @@ const Menuitems = [
     id: uniqueId(),
     title: "Dashboard",
     icon: IconLayoutDashboard,
-    href: "/",
+    href: "/dashboard",
   }
   ,
   {
     id: uniqueId(),
     title: "Profile",
     icon: IconLayoutDashboard,
-    href: "/profile",
+    href: "/dashboard/profile",
   },
   {
     navlabel: true,
