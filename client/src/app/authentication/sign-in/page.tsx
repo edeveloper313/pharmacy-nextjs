@@ -9,7 +9,7 @@ import AuthLogin from "../auth/AuthLogin";
 const Login2 = () => {
 
   return (
-    <PageContainer title="Login" description="this is Login page">
+    <PageContainer title="Login - Rx Pilot" description="this is Login page">
       <Box
         sx={{
           position: "relative",
@@ -71,7 +71,7 @@ const Login2 = () => {
                       variant="h6"
                       fontWeight="500"
                     >
-                      New to Modernize?
+                      New to RxPilot?
                     </Typography>
                     <Typography
                       component={Link}

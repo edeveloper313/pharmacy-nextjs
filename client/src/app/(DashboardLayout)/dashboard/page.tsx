@@ -8,10 +8,12 @@ import RecentTransactions from '@/app/(DashboardLayout)/dashboard/components/das
 import ProductPerformance from '@/app/(DashboardLayout)/dashboard/components/dashboard/ProductPerformance';
 import Blog from '@/app/(DashboardLayout)/dashboard/components/dashboard/Blog';
 import MonthlyEarnings from '@/app/(DashboardLayout)/dashboard/components/dashboard/MonthlyEarnings';
+import SuccessAlert from '@/app/components/SuccessAlert';
 
 const Dashboard = () => {
   return (
-    <PageContainer title="Dashboard" description="this is Dashboard">
+    <PageContainer title="Dashboard - Rx Pilot" description="this is Dashboard">
+      <SuccessAlert message="Login Successfully" />;
       <Box>
         <Grid container spacing={3}>
           <Grid

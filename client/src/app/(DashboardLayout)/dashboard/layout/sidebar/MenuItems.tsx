@@ -1,97 +1,104 @@
 import {
-  IconAperture,
-  IconCopy,
   IconLayoutDashboard,
+  IconUserCircle,
+  IconSettings,
+  IconPackage,
+  IconUsers,
+  IconShoppingCart,
+  IconPackages,
+  IconReceipt,
+  IconFileExport,
+  IconTruckDelivery,
+  IconChartBar,
+  IconShieldLock,
   IconLogin,
-  IconMoodHappy,
-  IconTypography,
   IconUserPlus,
 } from "@tabler/icons-react";
 
 import { uniqueId } from "lodash";
-
 const Menuitems = [
   {
     navlabel: true,
     subheader: "HOME",
   },
-
   {
     id: uniqueId(),
     title: "Dashboard",
     icon: IconLayoutDashboard,
     href: "/dashboard",
-  }
-  ,
+  },
   {
     id: uniqueId(),
-    title: "Profile ",
-    icon: IconLayoutDashboard,
-    href: "/dashboard/profile ",
-  }, 
+    title: "Profile",
+    icon: IconUserCircle,
+    href: "/dashboard/profile",
+  },
   {
     id: uniqueId(),
     title: "Setting",
-    icon: IconLayoutDashboard,
-    href: "/dashboard/setting ",
-  }, 
-    {
+    icon: IconSettings,
+    href: "/dashboard/setting",
+  },
+  {
     id: uniqueId(),
     title: "Product",
-    icon: IconLayoutDashboard,
-    href: "/dashboard/product  ",
-  }, 
-    {
+    icon: IconPackage,
+    href: "/dashboard/product",
+  },
+  {
     id: uniqueId(),
-    title: "Client Management ",
-    icon: IconLayoutDashboard,
-    href: "/dashboard/client-management ",
-  }, 
-    {
+    title: "Client Management",
+    icon: IconUsers,
+    href: "/dashboard/client-management",
+  },
+  {
     id: uniqueId(),
-    title: "Smart Purchase ",
-    icon: IconLayoutDashboard,
-    href: "/dashboard/smart-purchase ",
-  }, 
-    {
+    title: "Smart Purchase",
+    icon: IconShoppingCart,
+    href: "/dashboard/smart-purchase",
+  },
+  {
     id: uniqueId(),
     title: "Inventory Management",
-    icon: IconLayoutDashboard,
-    href: "/dashboard/inventory-management   ",
-  }, 
-      {
+    icon: IconPackages,
+    href: "/dashboard/inventory-management",
+  },
+  {
     id: uniqueId(),
     title: "Billing System",
-    icon: IconLayoutDashboard,
-    href: "/dashboard/billing-system   ",
-  },     {
+    icon: IconReceipt,
+    href: "/dashboard/billing-system",
+  },
+  {
     id: uniqueId(),
-    title: "Invoice Export ",
-    icon: IconLayoutDashboard,
-    href: "/dashboard/invoice-export ",
-  },     {
+    title: "Invoice Export",
+    icon: IconFileExport,
+    href: "/dashboard/invoice-export",
+  },
+  {
     id: uniqueId(),
     title: "Digital Delivery",
-    icon: IconLayoutDashboard,
-    href: "/dashboard/digital-delivery ",
-  },     {
+    icon: IconTruckDelivery,
+    href: "/dashboard/digital-delivery",
+  },
+  {
     id: uniqueId(),
-    title: "Reports ",
-    icon: IconLayoutDashboard,
-    href: "/dashboard/reports ",
-  },     {
+    title: "Reports",
+    icon: IconChartBar,
+    href: "/dashboard/reports",
+  },
+  {
     id: uniqueId(),
     title: "Security",
-    icon: IconLayoutDashboard,
+    icon: IconShieldLock,
     href: "/dashboard/security",
-  },    
- 
+  },
+
   {
     navlabel: true,
     subheader: "UTILITIES",
   },
-  
-  
+
   {
     navlabel: true,
     subheader: "AUTH",
@@ -108,10 +115,6 @@ const Menuitems = [
     icon: IconUserPlus,
     href: "/authentication/register",
   },
- 
- 
-  
-
 ];
 
 export default Menuitems;
