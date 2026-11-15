@@ -1,123 +1,678 @@
+
 "use client";
-import React, { useState } from "react";
-import { TextField, Button, Avatar, Chip, IconButton, InputAdornment } from "@mui/material";
-import { CloudUpload, Save, Visibility, VisibilityOff } from "@mui/icons-material";
+
+import React, { useRef, useState } from "react";
+
+import {
+  Box,
+  Grid,
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Button,
+  Avatar,
+  Chip,
+  IconButton,
+  InputAdornment,
+  Stack,
+  Divider,
+} from "@mui/material";
+
+import {
+  CloudUpload,
+  Save,
+  Visibility,
+  VisibilityOff,
+  PersonOutline,
+  LocalPharmacyOutlined,
+  LockOutlined,
+  CameraAltOutlined,
+  BusinessOutlined,
+} from "@mui/icons-material";
+
+import SuccessAlert from "@/app/components/SuccessAlert";
+import ErrorAlert from "@/app/components/ErrorAlert";
 
 export default function ProfilePage() {
   const [showPass, setShowPass] = useState(false);
 
+  const [profileImage, setProfileImage] = useState("/avatar.png");
+  const [pharmacyLogo, setPharmacyLogo] = useState(null);
+
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showError, setShowError] = useState(false);
+
+  const formRef = useRef(null);
+
+  // Profile Image Upload
+  const handleProfileImage = (e) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setShowError(true);
+      setShowSuccess(false);
+      return;
+    }
+
+    setProfileImage(URL.createObjectURL(file));
+  };
+
+  // Pharmacy Logo Upload
+  const handleLogoUpload = (e) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setShowError(true);
+      setShowSuccess(false);
+      return;
+    }
+
+    setPharmacyLogo(URL.createObjectURL(file));
+  };
+
+  // Save Profile
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    setShowSuccess(false);
+    setShowError(false);
+
+    try {
+      // Connect your profile update API here.
+      // Example:
+      // await updateProfile(formData);
+
+      setShowSuccess(true);
+    } catch (error) {
+      setShowError(true);
+    }
+  };
+
+  // Reset Form
+  const handleReset = () => {
+    formRef.current?.reset();
+
+    setProfileImage("/avatar.png");
+    setPharmacyLogo(null);
+    setShowPass(false);
+
+    setShowSuccess(false);
+    setShowError(false);
+  };
+
   return (
-    <div className="p-6 bg-slate-50 min-h-screen space-y-6">
-      {/* Page Title */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">Profile & Pharmacy Details</h1>
-        <p className="text-sm text-slate-500">Apni personal aur pharmacy ki details update karein</p>
-      </div>
+    <Box sx={{ width: "100%", pb: 4 }}>
 
-      {/* SECTION 1: Personal Profile */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-slate-800">Personal Information</h2>
-          <Chip label="Super Admin" color="primary" size="small" />
-        </div>
+      {/* ALERTS */}
 
-        {/* Avatar Upload */}
-        <div className="flex items-center gap-4 mb-6">
-          <Avatar sx={{ width: 64, height: 64 }} src="/avatar.png" />
-          <div>
-            <Button variant="outlined" component="label" size="small" startIcon={<CloudUpload />}>
-              Change Photo
-              <input type="file" hidden accept="image/*" />
-            </Button>
-            <p className="text-xs text-slate-400 mt-1">JPG or PNG, Max 2MB</p>
-          </div>
-        </div>
+      {showSuccess && (
+        <SuccessAlert message="Profile updated successfully!" />
+      )}
 
-        {/* Tailwind Grid + MUI TextFields */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <TextField label="Full Name" size="small" fullWidth defaultValue="Faisal BARKATI" />
-          <TextField label="Username" size="small" fullWidth defaultValue="admin_pharmacy" />
-          <TextField label="Email Address" type="email" size="small" fullWidth defaultValue="admin@pharmacy.com" />
-          <TextField label="Mobile Number" size="small" fullWidth defaultValue="0301-2345678" />
-        </div>
-      </div>
+      {showError && (
+        <ErrorAlert message="Something went wrong. Please try again!" />
+      )}
 
-      {/* SECTION 2: Pharmacy Business Profile (For Invoices) */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-        <h2 className="text-lg font-semibold text-slate-800 mb-4">
-          Pharmacy Business Profile (Invoice Header)
-        </h2>
+      {/* PAGE HEADER */}
 
-        {/* Logo Upload */}
-        <div className="flex items-center gap-4 mb-6 p-4 bg-slate-50 rounded-lg border border-dashed border-slate-300">
-          <div className="w-16 h-16 bg-white rounded-lg border flex items-center justify-center text-xs text-slate-400">
-            Logo
-          </div>
-          <div>
-            <Button variant="contained" component="label" size="small" startIcon={<CloudUpload />}>
-              Upload Pharmacy Logo
-              <input type="file" hidden accept="image/*" />
-            </Button>
-            <p className="text-xs text-slate-500 mt-1">Yeh logo har printed aur PDF invoice par show hoga.</p>
-          </div>
-        </div>
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        justifyContent="space-between"
+        alignItems={{ xs: "flex-start", sm: "center" }}
+        spacing={2}
+        mb={3}
+      >
+        <Box>
+          <Typography
+            variant="h5"
+            fontWeight={700}
+            color="#1e293b"
+          >
+            Profile & Pharmacy Details
+          </Typography>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <TextField label="Pharmacy Name" size="small" fullWidth required />
-          <TextField label="Tagline / Slogan" size="small" fullWidth />
-          <TextField label="TRN / Tax Number" size="small" fullWidth />
-          <TextField label="Pharmacy / Drug License No." size="small" fullWidth />
-          <TextField label="Business Phone" size="small" fullWidth />
-          <TextField label="WhatsApp Number (Digital Delivery)" size="small" fullWidth />
-          <TextField label="Business Email" type="email" size="small" fullWidth />
-          <TextField label="City & Country" size="small" fullWidth defaultValue="Pakistan, karachi" />
-          <div className="md:col-span-2">
-            <TextField label="Full Shop Address" size="small" fullWidth multiline rows={2} />
-          </div>
-          <div className="md:col-span-2">
-            <TextField
-              label="Invoice Footer Note"
-              size="small"
-              fullWidth
-              multiline
-              rows={2}
-              placeholder="e.g., Medicines once sold cannot be returned without bill."
-            />
-          </div>
-        </div>
-      </div>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            mt={0.5}
+          >
+            Manage your personal information and pharmacy business details.
+          </Typography>
+        </Box>
 
-      {/* SECTION 3: Security / Password */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-        <h2 className="text-lg font-semibold text-slate-800 mb-4">Change Password</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <TextField label="Current Password" type="password" size="small" fullWidth />
-          <TextField
-            label="New Password"
-            type={showPass ? "text" : "password"}
-            size="small"
-            fullWidth
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowPass(!showPass)} edge="end" size="small">
-                    {showPass ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
+        <Chip
+          label="Super Admin"
+          color="primary"
+          variant="outlined"
+          sx={{ fontWeight: 600 }}
+        />
+      </Stack>
+
+      <form ref={formRef} onSubmit={handleSubmit}>
+
+        {/* ================================= */}
+        {/* SECTION 1: PERSONAL INFORMATION */}
+        {/* ================================= */}
+
+        <Card
+          elevation={0}
+          sx={{
+            border: "1px solid #e8edf3",
+            borderRadius: "14px",
+            mb: 3,
+          }}
+        >
+          <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={1.5}
+              mb={3}
+            >
+              <Avatar
+                sx={{
+                  bgcolor: "#eff6ff",
+                  color: "#2563eb",
+                  borderRadius: "10px",
+                }}
+              >
+                <PersonOutline />
+              </Avatar>
+
+              <Box>
+                <Typography variant="h6" fontWeight={700}>
+                  Personal Information
+                </Typography>
+
+                <Typography variant="caption" color="text.secondary">
+                  Your personal account information
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Divider sx={{ mb: 3 }} />
+
+            {/* PROFILE IMAGE */}
+
+            <Stack
+              direction="row"
+              spacing={2}
+              alignItems="center"
+              mb={3}
+            >
+              <Box position="relative">
+                <Avatar
+                  src={profileImage}
+                  sx={{
+                    width: 76,
+                    height: 76,
+                    border: "3px solid #eff6ff",
+                  }}
+                />
+
+                <IconButton
+                  component="label"
+                  size="small"
+                  sx={{
+                    position: "absolute",
+                    bottom: -4,
+                    right: -4,
+                    bgcolor: "#2563eb",
+                    color: "#fff",
+                    width: 28,
+                    height: 28,
+                    "&:hover": {
+                      bgcolor: "#1d4ed8",
+                    },
+                  }}
+                >
+                  <CameraAltOutlined sx={{ fontSize: 16 }} />
+
+                  <input
+                    hidden
+                    type="file"
+                    accept="image/*"
+                    onChange={handleProfileImage}
+                  />
+                </IconButton>
+              </Box>
+
+              <Box>
+                <Typography fontWeight={700} variant="body1">
+                  Profile Photo
+                </Typography>
+
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  display="block"
+                >
+                  JPG or PNG, maximum 2MB
+                </Typography>
+
+                <Button
+                  component="label"
+                  size="small"
+                  startIcon={<CloudUpload />}
+                  sx={{ mt: 0.5 }}
+                >
+                  Change Photo
+
+                  <input
+                    hidden
+                    type="file"
+                    accept="image/*"
+                    onChange={handleProfileImage}
+                  />
+                </Button>
+              </Box>
+            </Stack>
+
+            {/* PERSONAL FIELDS */}
+
+            <Grid container spacing={2.5}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  label="Full Name"
+                  name="fullName"
+                  size="small"
+                  fullWidth
+                  defaultValue="Faisal BARKATI"
+                  required
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  label="Username"
+                  name="username"
+                  size="small"
+                  fullWidth
+                  defaultValue="admin_pharmacy"
+                  required
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  label="Email Address"
+                  name="email"
+                  type="email"
+                  size="small"
+                  fullWidth
+                  defaultValue="admin@pharmacy.com"
+                  required
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  label="Mobile Number"
+                  name="mobile"
+                  size="small"
+                  fullWidth
+                  defaultValue="0301-2345678"
+                />
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+
+        {/* ================================= */}
+        {/* SECTION 2: PHARMACY INFORMATION */}
+        {/* ================================= */}
+
+        <Card
+          elevation={0}
+          sx={{
+            border: "1px solid #e8edf3",
+            borderRadius: "14px",
+            mb: 3,
+          }}
+        >
+          <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={1.5}
+              mb={3}
+            >
+              <Avatar
+                sx={{
+                  bgcolor: "#f0fdf4",
+                  color: "#16a34a",
+                  borderRadius: "10px",
+                }}
+              >
+                <LocalPharmacyOutlined />
+              </Avatar>
+
+              <Box>
+                <Typography variant="h6" fontWeight={700}>
+                  Pharmacy Business Profile
+                </Typography>
+
+                <Typography variant="caption" color="text.secondary">
+                  Business details used on printed and PDF invoices
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Divider sx={{ mb: 3 }} />
+
+            {/* PHARMACY LOGO */}
+
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                p: 2,
+                mb: 3,
+                bgcolor: "#f8fafc",
+                border: "1px dashed #cbd5e1",
+                borderRadius: "12px",
+                flexWrap: "wrap",
+              }}
+            >
+              <Avatar
+                variant="rounded"
+                src={pharmacyLogo || undefined}
+                sx={{
+                  width: 72,
+                  height: 72,
+                  bgcolor: "#fff",
+                  color: "#94a3b8",
+                  border: "1px solid #e2e8f0",
+                }}
+              >
+                {!pharmacyLogo && <BusinessOutlined fontSize="large" />}
+              </Avatar>
+
+              <Box flex={1}>
+                <Typography fontWeight={700}>
+                  Pharmacy Logo
+                </Typography>
+
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  display="block"
+                  mb={1}
+                >
+                  This logo will appear on invoices and PDF documents.
+                </Typography>
+
+                <Button
+                  component="label"
+                  variant="contained"
+                  size="small"
+                  startIcon={<CloudUpload />}
+                  sx={{
+                    bgcolor: "#2563eb",
+                    textTransform: "none",
+                    boxShadow: "none",
+                    "&:hover": { bgcolor: "#1d4ed8", boxShadow: "none" },
+                  }}
+                >
+                  Upload Logo
+
+                  <input
+                    hidden
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                  />
+                </Button>
+              </Box>
+            </Box>
+
+            {/* PHARMACY FIELDS */}
+
+            <Grid container spacing={2.5}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  label="Pharmacy Name"
+                  name="pharmacyName"
+                  size="small"
+                  fullWidth
+                  required
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  label="Tagline / Slogan"
+                  name="tagline"
+                  size="small"
+                  fullWidth
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  label="TRN / Tax Number"
+                  name="taxNumber"
+                  size="small"
+                  fullWidth
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  label="Pharmacy / Drug License No."
+                  name="licenseNumber"
+                  size="small"
+                  fullWidth
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  label="Business Phone"
+                  name="businessPhone"
+                  size="small"
+                  fullWidth
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  label="WhatsApp Number (Digital Delivery)"
+                  name="whatsapp"
+                  size="small"
+                  fullWidth
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  label="Business Email"
+                  name="businessEmail"
+                  type="email"
+                  size="small"
+                  fullWidth
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  label="City & Country"
+                  name="city"
+                  size="small"
+                  fullWidth
+                  defaultValue="Karachi, Pakistan"
+                />
+              </Grid>
+
+              <Grid size={12}>
+                <TextField
+                  label="Full Shop Address"
+                  name="address"
+                  size="small"
+                  fullWidth
+                  multiline
+                  rows={2}
+                />
+              </Grid>
+
+              <Grid size={12}>
+                <TextField
+                  label="Invoice Footer Note"
+                  name="invoiceNote"
+                  size="small"
+                  fullWidth
+                  multiline
+                  rows={2}
+                  placeholder="e.g., Medicines once sold cannot be returned without bill."
+                />
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+
+        {/* ================================= */}
+        {/* SECTION 3: SECURITY */}
+        {/* ================================= */}
+
+        <Card
+          elevation={0}
+          sx={{
+            border: "1px solid #e8edf3",
+            borderRadius: "14px",
+            mb: 3,
+          }}
+        >
+          <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={1.5}
+              mb={3}
+            >
+              <Avatar
+                sx={{
+                  bgcolor: "#fff7ed",
+                  color: "#ea580c",
+                  borderRadius: "10px",
+                }}
+              >
+                <LockOutlined />
+              </Avatar>
+
+              <Box>
+                <Typography variant="h6" fontWeight={700}>
+                  Security & Password
+                </Typography>
+
+                <Typography variant="caption" color="text.secondary">
+                  Keep your account secure
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Divider sx={{ mb: 3 }} />
+
+            <Grid container spacing={2.5}>
+              <Grid size={{ xs: 12, md: 4 }}>
+                <TextField
+                  label="Current Password"
+                  name="currentPassword"
+                  type="password"
+                  size="small"
+                  fullWidth
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 4 }}>
+                <TextField
+                  label="New Password"
+                  name="newPassword"
+                  type={showPass ? "text" : "password"}
+                  size="small"
+                  fullWidth
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPass(!showPass)}
+                          edge="end"
+                          size="small"
+                        >
+                          {showPass ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 4 }}>
+                <TextField
+                  label="Confirm New Password"
+                  name="confirmPassword"
+                  type="password"
+                  size="small"
+                  fullWidth
+                />
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+
+        {/* ================================= */}
+        {/* SAVE & RESET BUTTONS */}
+        {/* ================================= */}
+
+        <Stack
+          direction="row"
+          justifyContent="flex-end"
+          spacing={1.5}
+          flexWrap="wrap"
+        >
+          <Button
+            type="button"
+            variant="outlined"
+            color="inherit"
+            onClick={handleReset}
+            sx={{
+              borderRadius: "9px",
+              px: 3,
+              textTransform: "none",
             }}
-          />
-          <TextField label="Confirm New Password" type="password" size="small" fullWidth />
-        </div>
-      </div>
+          >
+            Reset
+          </Button>
 
-      {/* Save & Reset Buttons */}
-      <div className="flex justify-end gap-3">
-        <Button variant="outlined" color="inherit">Reset</Button>
-        <Button variant="contained" startIcon={<Save />} className="bg-blue-600">
-          Save Changes
-        </Button>
-      </div>
-    </div>
+          <Button
+            type="submit"
+            variant="contained"
+            startIcon={<Save />}
+            sx={{
+              bgcolor: "#2563eb",
+              borderRadius: "9px",
+              px: 3,
+              textTransform: "none",
+              boxShadow: "none",
+              "&:hover": {
+                bgcolor: "#1d4ed8",
+                boxShadow: "none",
+              },
+            }}
+          >
+            Save Changes
+          </Button>
+        </Stack>
+
+      </form>
+    </Box>
   );
 }
