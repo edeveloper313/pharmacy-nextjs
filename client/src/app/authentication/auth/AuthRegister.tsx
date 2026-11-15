@@ -46,7 +46,7 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
             </Stack>
             <Button color="primary" variant="contained" size="large" fullWidth component={Link}     onClick={handleSubmit}
  href="/authentication/sign-in">
-                Sign Up
+                Send Request
             </Button>
         </Box>
         {subtitle}

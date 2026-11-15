@@ -1,4 +1,162 @@
 @import "tailwindcss";
-*{
-     font-family: 'Plus Jakarta Sans', Helvetica, Arial, sans-serif !important;
+
+/* ============================================
+   Theme Configuration (Tailwind CSS v4)
+   ============================================ */
+@theme {
+  /* ---------- Brand Colors ---------- */
+  --color-primary: #0F766E;        /* deep teal — health, calm, trust */
+  --color-primary-light: #14B8A6;  /* lighter teal for hover states */
+  --color-primary-dark: #0B5C56;   /* darker teal for active/pressed */
+
+  --color-secondary: #14B8A6;      /* teal accent — buttons, highlights */
+  --color-secondary-light: #5EEAD4;
+  --color-secondary-dark: #0F766E;
+
+  --color-accent: #F59E0B;         /* amber — alerts, CTAs */
+  --color-accent-light: #FBBF24;
+  --color-accent-dark: #D97706;
+
+  /* ---------- Neutral Colors ---------- */
+  --color-background: #F8FAFC;     /* off-white page background */
+  --color-surface: #FFFFFF;        /* card / panel surface */
+
+  --color-foreground: #0F172A;     /* slate-900 — main text */
+  --color-muted: #64748B;          /* slate-500 — secondary text */
+
+  /* ---------- Semantic Colors ---------- */
+  --color-success: #22C55E;
+  --color-success-light: #4ADE80;
+  --color-success-dark: #16A34A;
+
+  --color-warning: #F59E0B;
+  --color-warning-light: #FBBF24;
+  --color-warning-dark: #D97706;
+
+  --color-danger: #EF4444;
+  --color-danger-light: #F87171;
+  --color-danger-dark: #DC2626;
+
+  /* ---------- Borders / Dividers ---------- */
+  --color-border: #E2E8F0;         /* slate-200 */
+  --color-border-strong: #CBD5E1;  /* slate-300 */
+
+  /* ---------- Fonts (optional but recommended) ---------- */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* ---------- Radius ---------- */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  /* ---------- Shadows ---------- */
+  --shadow-card: 0 1px 3px 0 rgb(15 23 42 / 0.06),
+                 0 1px 2px -1px rgb(15 23 42 / 0.06);
+  --shadow-elevated: 0 4px 12px -2px rgb(15 23 42 / 0.10),
+                     0 2px 4px -2px rgb(15 23 42 / 0.06);
+}
+
+/* ============================================
+   Base Layer — global element styles
+   ============================================ */
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.5;
+  }
+
+  /* Headings default to text color */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--color-foreground);
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  /* Links */
+  a {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--color-secondary);
+  }
+
+  /* Focus rings — accessible & on-brand */
+  :focus-visible {
+    outline: 2px solid var(--color-secondary);
+    outline-offset: 2px;
+  }
+
+  /* Selection */
+  ::selection {
+    background-color: var(--color-secondary);
+    color: #ffffff;
+  }
+}
+
+/* ============================================
+   Component-layer helpers (optional)
+   ============================================ */
+@layer components {
+  /* Card surface */
+  .card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Primary button */
+  .btn-primary {
+    background-color: var(--color-primary);
+    color: #ffffff;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    transition: background-color 0.15s ease;
+  }
+  .btn-primary:hover {
+    background-color: var(--color-primary-dark);
+  }
+
+  /* Secondary button */
+  .btn-secondary {
+    background-color: var(--color-secondary);
+    color: #ffffff;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    transition: background-color 0.15s ease;
+  }
+  .btn-secondary:hover {
+    background-color: var(--color-secondary-dark);
+  }
+
+  /* Amber CTA (use for expiry / low-stock actions) */
+  .btn-accent {
+    background-color: var(--color-accent);
+    color: #ffffff;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    transition: background-color 0.15s ease;
+  }
+  .btn-accent:hover {
+    background-color: var(--color-accent-dark);
+  }
 }

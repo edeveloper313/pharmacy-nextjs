@@ -14,7 +14,7 @@ const Logo = () => {
     </div>
      <div>
        <h2 className="text-xl font-bold ">Admin</h2>
-      <p className="text-xs font-light">Admin Dashboard</p>
+      <p className="text-xs  font-light">Admin Dashboard</p>
      </div>
    </div>
     </>
