@@ -21,7 +21,7 @@ interface Login {
 }
 
 const Login = ({ title, subtitle, subtext }: Login) => {
-   const [username, setUsername] = useState<string>( "Shakir Barkati");
+   const [username, setUsername] = useState<string>( "Admin");
 
 const [password, setPassword] = useState("123456");
          const router=useRouter();
@@ -31,13 +31,13 @@ if(username.trim() === "" || password.trim() === "") {
       alert("Please enter both username and password.");
       return;
     }
-    if(username !== "Shakir Barkati" || password !== "123456") {
+    if(username !== "Admin" || password !== "123456") {
 console.log("Username:", username);
     console.log("Password:", password);
       alert("Invalid username or password.");
       return;
     }
-    if(username === "Shakir Barkati" && password === "123456") {
+    if(username === "Admin" && password === "123456") {
       console.log("Username:", username);
     console.log("Password:", password);
       router.push("/dashboard");
