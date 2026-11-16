@@ -14,6 +14,7 @@ import {
   Button,
   Divider,
   TextField,
+  TextFieldProps ,
   FormControl,
   InputLabel,
   Select,
@@ -270,10 +271,10 @@ export default function SettingsPage() {
   // REUSABLE TEXT FIELD
   // ========================================
 
-  const inputProps = {
-    size: "small",
-    fullWidth: true,
-  };
+const inputProps = {
+  size: "small" as "small" | "medium", // Yahan type assert kar dein
+  fullWidth: true,
+};
 
   const textField = (name, label, props = {}) => (
     <TextField
