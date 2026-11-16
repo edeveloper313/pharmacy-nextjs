@@ -81,18 +81,18 @@ const Menuitems = [
     icon: IconTruckDelivery,
     href: "/dashboard/digital-delivery",
   },
-  {
-    id: uniqueId(),
-    title: "Reports",
-    icon: IconChartBar,
-    href: "/dashboard/reports",
-  },
-  {
-    id: uniqueId(),
-    title: "Security",
-    icon: IconShieldLock,
-    href: "/dashboard/security",
-  },
+  // {
+  //   id: uniqueId(),
+  //   title: "Reports",
+  //   icon: IconChartBar,
+  //   href: "/dashboard/reports",
+  // },
+  // {
+  //   id: uniqueId(),
+  //   title: "Security",
+  //   icon: IconShieldLock,
+  //   href: "/dashboard/security",
+  // },
 
   
 ];
