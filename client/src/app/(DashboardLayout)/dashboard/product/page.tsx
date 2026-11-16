@@ -32,6 +32,7 @@ import {
   DialogContent,
   DialogActions,
   Avatar,
+  AlertColor,
 } from "@mui/material";
 
 import {
@@ -198,15 +199,17 @@ export default function ProductPage() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const [order, setOrder] = useState("desc");
+  const [order, setOrder] = useState<"asc" | "desc">("asc");
   const [orderBy, setOrderBy] = useState("createdAt");
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const [alert, setAlert] = useState(null);
+  const [alert, setAlert] = useState<{ type: AlertColor; message: string } | null>(null);
 
-  const showAlert = (type, message) => setAlert({ type, message });
+   const showAlert = (type: AlertColor, message: string) => {
+    setAlert({ type, message });
+  };
 
   // ==========================================
   // FILTERING & SORTING
