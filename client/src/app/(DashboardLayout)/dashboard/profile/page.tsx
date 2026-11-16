@@ -38,12 +38,12 @@ export default function ProfilePage() {
   const [showPass, setShowPass] = useState(false);
 
   const [profileImage, setProfileImage] = useState("/avatar.png");
-  const [pharmacyLogo, setPharmacyLogo] = useState(null);
+  const [pharmacyLogo, setPharmacyLogo] = useState<string | null>(null);
 
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
 
-  const formRef = useRef(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   // Profile Image Upload
   const handleProfileImage = (e) => {
