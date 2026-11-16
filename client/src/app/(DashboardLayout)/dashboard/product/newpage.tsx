@@ -33,6 +33,7 @@ import {
   DialogActions,
   Avatar,
   AlertColor,
+  ChipProps,
 } from "@mui/material";
 
 import {
@@ -90,7 +91,7 @@ export default function ProductPage() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [stockFilter, setStockFilter] = useState("all");
-  const [order, setOrder] = useState("asc");
+  const [order, setOrder] = useState<"asc" | "desc">("desc");
   const [orderBy, setOrderBy] = useState("name");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -375,7 +376,7 @@ export default function ProductPage() {
                       <TableCell><Typography color="#2563eb" fontWeight={700}>Rs. {product.salePrice.toLocaleString()}</Typography></TableCell>
                       <TableCell><Typography fontWeight={700}>{product.stock}</Typography></TableCell>
                       <TableCell>{product.expiryDate}</TableCell>
-                      <TableCell><Chip size="small" color={stockStatus.color} label={stockStatus.label} /></TableCell>
+                      <TableCell><Chip size="small"  color={stockStatus.color as ChipProps["color"]} label={stockStatus.label} /></TableCell>
                       <TableCell>
                         <Stack direction="row" spacing={0.5}>
                           <Tooltip title="Edit">
