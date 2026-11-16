@@ -75,12 +75,12 @@ const Menuitems = [
     icon: IconFileExport,
     href: "/dashboard/invoice-export",
   },
-  {
-    id: uniqueId(),
-    title: "Digital Delivery",
-    icon: IconTruckDelivery,
-    href: "/dashboard/digital-delivery",
-  },
+  // {
+  //   id: uniqueId(),
+  //   title: "Digital Delivery",
+  //   icon: IconTruckDelivery,
+  //   href: "/dashboard/digital-delivery",
+  // },
   // {
   //   id: uniqueId(),
   //   title: "Reports",
