@@ -32,6 +32,7 @@ import {
   DialogContent,
   DialogActions,
   Avatar,
+  AlertColor,
 } from "@mui/material";
 
 import {
@@ -48,6 +49,7 @@ import {
 // Make sure these paths match your project structure
 import SuccessAlert from "@/app/components/SuccessAlert";
 import ErrorAlert from "@/app/components/ErrorAlert";
+import { AlertState } from "@/app/components/types/types";
 
 // ============================================
 // INITIAL DATA
@@ -150,9 +152,11 @@ export default function ClientManagementPage() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const [alert, setAlert] = useState(null);
+   const [alert, setAlert] = useState<{ type: AlertColor; message: string } | null>(null);
 
-  const showAlert = (type, message) => setAlert({ type, message });
+  const showAlert = (type: AlertState['type'], message: string) => {
+    setAlert({ type, message });
+  };
 
   // ==========================================
   // FILTERING & SORTING

@@ -50,6 +50,7 @@ import {
 
 import SuccessAlert from "@/app/components/SuccessAlert";
 import ErrorAlert from "@/app/components/ErrorAlert";
+import { AlertState } from "@/app/components/types/types"; 
 
 // ============================================
 // INITIAL DATA - PRODUCTS
@@ -207,7 +208,7 @@ export default function ProductPage() {
 
   const [alert, setAlert] = useState<{ type: AlertColor; message: string } | null>(null);
 
-   const showAlert = (type: AlertColor, message: string) => {
+  const showAlert = (type: AlertState['type'], message: string) => {
     setAlert({ type, message });
   };
 
