@@ -142,7 +142,8 @@ export default function SecurityPage() {
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const [order, setOrder] = useState("asc");
+    const [order, setOrder] = useState<"asc" | "desc">("desc");
+
   const [orderBy, setOrderBy] = useState("name");
 
   const [page, setPage] = useState(0);

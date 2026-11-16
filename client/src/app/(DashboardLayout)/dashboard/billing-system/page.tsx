@@ -168,7 +168,8 @@ export default function BillingSystemPage() {
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const [order, setOrder] = useState("desc");
+  const [order, setOrder] = useState<"asc" | "desc">("desc");
+
   const [orderBy, setOrderBy] = useState("date");
 
   const [page, setPage] = useState(0);

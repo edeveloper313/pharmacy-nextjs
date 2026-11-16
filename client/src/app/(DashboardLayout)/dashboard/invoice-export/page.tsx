@@ -143,7 +143,8 @@ export default function InvoiceExportPage() {
   const [formatFilter, setFormatFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const [order, setOrder] = useState("desc");
+  const [order, setOrder] = useState<"asc" | "desc">("desc");
+  
   const [orderBy, setOrderBy] = useState("exportDate");
 
   const [page, setPage] = useState(0);

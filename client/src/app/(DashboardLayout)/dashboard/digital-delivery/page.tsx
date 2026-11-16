@@ -159,7 +159,7 @@ export default function DigitalDeliveryPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
 
-  const [order, setOrder] = useState("desc");
+  const [order, setOrder] = useState<"asc" | "desc">("desc");
   const [orderBy, setOrderBy] = useState("deliveryDate");
 
   const [page, setPage] = useState(0);

@@ -162,7 +162,8 @@ export default function SmartPurchasePage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
 
-  const [order, setOrder] = useState("asc");
+    const [order, setOrder] = useState<"asc" | "desc">("desc");
+
   const [orderBy, setOrderBy] = useState("invoiceDate");
 
   const [page, setPage] = useState(0);

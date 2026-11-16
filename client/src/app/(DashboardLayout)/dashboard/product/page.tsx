@@ -200,7 +200,8 @@ export default function ProductPage() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const [order, setOrder] = useState<"asc" | "desc">("asc");
+    const [order, setOrder] = useState<"asc" | "desc">("desc");
+
   const [orderBy, setOrderBy] = useState("createdAt");
 
   const [page, setPage] = useState(0);
