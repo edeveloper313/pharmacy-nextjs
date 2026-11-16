@@ -1,10 +1,13 @@
-"use client";
-import { baselightTheme } from "@/utils/theme/DefaultColors";
-import { ThemeProvider } from "@mui/material/styles";
-import CssBaseline from "@mui/material/CssBaseline";
+import type { Metadata } from 'next';
+import "@/app/global.css";
+import ThemeProviderWrapper from './ThemeProviderWrapper'; // Path check kar lein agar error aaye
 
-import "@/app/global.css"
-
+export const metadata: Metadata = {
+  title: 'RxPilot', // Yahan apni company ka naam likh dein
+  icons: {
+    icon: '/icon.png', 
+  },
+};
 
 export default function RootLayout({
   children,
@@ -14,16 +17,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <ThemeProvider theme={baselightTheme}>
-
-          {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-          <CssBaseline />
-
-
-            {children}
-
-
-        </ThemeProvider>
+        {/* Yahan humne apna naya wrapper use kiya hai */}
+        <ThemeProviderWrapper>
+          {children}
+        </ThemeProviderWrapper>
       </body>
     </html>
   );
