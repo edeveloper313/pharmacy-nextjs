@@ -120,14 +120,7 @@ const quickModules = [
     bg: "#eff6ff",
     href: "/dashboard/profile",
   },
-  {
-    title: "Setting",
-    subtitle: "System configuration",
-    icon: <SettingsOutlined />,
-    color: "#64748b",
-    bg: "#f1f5f9",
-    href: "/dashboard/setting",
-  },
+ 
   {
     title: "Product",
     subtitle: "Manage products",
@@ -152,14 +145,7 @@ const quickModules = [
     bg: "#fff7ed",
     href: "/dashboard/smart-purchase",
   },
-  {
-    title: "Inventory Management",
-    subtitle: "Track your inventory",
-    icon: <WarehouseOutlined />,
-    color: "#16a34a",
-    bg: "#f0fdf4",
-    href: "/dashboard/inventory-management",
-  },
+ 
   {
     title: "Billing System",
     subtitle: "Manage billing",
@@ -176,14 +162,7 @@ const quickModules = [
     bg: "#eef2ff",
     href: "/dashboard/invoice-export",
   },
-  {
-    title: "Digital Delivery",
-    subtitle: "Manage deliveries",
-    icon: <LocalShippingOutlined />,
-    color: "#0284c7",
-    bg: "#f0f9ff",
-    href: "/dashboard/digital-delivery",
-  },
+ 
   {
     title: "Reports",
     subtitle: "View business reports",
