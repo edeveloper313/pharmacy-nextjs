@@ -394,7 +394,7 @@ const Dashboard = () => {
               {quickModules.map((module, index) => (
                 <Grid
                   key={index}
-                  size={{ xs: 6, sm: 4, md: 3, lg: 2.4 }}
+                  size={{ xs: 6, sm: 4, md: 3, lg: 3 }}
                 >
                   <Box
                     component={Link}
