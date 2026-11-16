@@ -1,19 +1,17 @@
-import { useMediaQuery, Box, Drawer, IconButton, Theme } from "@mui/material";
+import { useMediaQuery, Box, Drawer, Theme } from "@mui/material";
 import SidebarItems from "./SidebarItems";
-import { IconX, IconMenu2 } from "@tabler/icons-react"; // Open/Close icons
 
 interface ItemType {
   isMobileSidebarOpen: boolean;
   onSidebarClose: (event: React.MouseEvent<HTMLElement>) => void;
   isSidebarOpen: boolean;
-  toggleDesktopSidebar: () => void; 
+  toggleDesktopSidebar: () => void; // Header se toggle karne ke liye prop yahan hai
 }
 
 const MSidebar = ({
   isMobileSidebarOpen,
   onSidebarClose,
   isSidebarOpen,
-  toggleDesktopSidebar,
 }: ItemType) => {
   const lgUp = useMediaQuery((theme: Theme) => theme.breakpoints.up("lg"));
 
@@ -34,36 +32,25 @@ const MSidebar = ({
     return (
       <Drawer
         anchor="left"
-        open={true} // Permanent drawer hamesha open rehta hai, width se khelte hain
-        variant="permanent" // Persistent ki jagah permanent kiya taake mini mode mein visible rahe
+        open={true}
+        variant="permanent"
         slotProps={{
           paper: {
             sx: {
               boxSizing: "border-box",
               ...scrollbarStyles,
               width: sidebarWidth,
-              transition: "width 0.3s ease", // Smooth animation
-              overflowX: "hidden", // Text bahar na nikle
+              transition: "width 0.3s ease", 
+              overflowX: "hidden", 
             },
           }
         }}
       >
-        <Box sx={{ height: "100%" }}>
-          {/* Top Toggle Button */}
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: isSidebarOpen ? 'flex-end' : 'center', 
-            p: 2, 
-            pb: 0,
-            mt: 1
-          }}>
-            <IconButton onClick={toggleDesktopSidebar} size="small" sx={{ color: "text.secondary" }}>
-              {isSidebarOpen ? <IconX size="20" /> : <IconMenu2 size="20" />}
-            </IconButton>
-          </Box>
-
-          <Box sx={{ mt: isSidebarOpen ? 0 : 2 }}>
-            {/* Pass isSidebarOpen prop to SidebarItems */}
+        <Box sx={{ height: "100%", pt: 2 }}>
+          {/* Toggle button yahan se hata diya gaya hai */}
+          
+          <Box>
+            {/* Sidebar Items directly start honge */}
             <SidebarItems isSidebarOpen={isSidebarOpen} />
           </Box>
         </Box>
@@ -71,7 +58,7 @@ const MSidebar = ({
     );
   }
 
-  // Mobile ke liye temporary hi rahega
+  // Mobile ke liye temporary
   return (
     <Drawer
       anchor="left"

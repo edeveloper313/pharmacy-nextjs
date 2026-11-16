@@ -8,7 +8,7 @@ interface LogoProps {
 const Logo = ({ isSidebarOpen = true }: LogoProps) => {
   return (
     <Link 
-      href="/" 
+      href="/dashboard" 
       className={`flex items-center ${isSidebarOpen ? 'justify-start px-4' : 'justify-center'} gap-2 mt-4 mb-4 w-full transition-all duration-300`}
     >
       {/* Logo Image Container */}
