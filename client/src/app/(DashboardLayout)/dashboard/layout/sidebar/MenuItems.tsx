@@ -33,12 +33,12 @@ const Menuitems = [
     icon: IconUserCircle,
     href: "/dashboard/profile",
   },
-  {
-    id: uniqueId(),
-    title: "Setting",
-    icon: IconSettings,
-    href: "/dashboard/setting",
-  },
+  // {
+  //   id: uniqueId(),
+  //   title: "Setting",
+  //   icon: IconSettings,
+  //   href: "/dashboard/setting",
+  // },
   {
     id: uniqueId(),
     title: "Product",
