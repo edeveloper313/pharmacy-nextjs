@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, AppBar, Toolbar, styled, Stack, IconButton, Badge, Button } from '@mui/material';
+import { Box, AppBar, Toolbar, styled, Stack, IconButton, Badge, Button, useMediaQuery } from '@mui/material';
 import PropTypes from 'prop-types';
 import Link from 'next/link';
 // components
@@ -8,13 +8,13 @@ import { IconBellRinging, IconMenu } from '@tabler/icons-react';
 
 interface ItemType {
   toggleMobileSidebar:  (event: React.MouseEvent<HTMLElement>) => void;
+  toggleDesktopSidebar: () => void; // New prop added
 }
 
-const Header = ({toggleMobileSidebar}: ItemType) => {
+const Header = ({toggleMobileSidebar, toggleDesktopSidebar}: ItemType) => {
 
-  // const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));
-  // const lgDown = useMediaQuery((theme) => theme.breakpoints.down('lg'));
-
+  // Screen size check karne ke liye
+  const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up('lg'));
 
   const AppBarStyled = styled(AppBar)(({ theme }) => ({
     boxShadow: 'none',
@@ -25,6 +25,7 @@ const Header = ({toggleMobileSidebar}: ItemType) => {
       minHeight: '70px',
     },
   }));
+  
   const ToolbarStyled = styled(Toolbar)(({ theme }) => ({
     width: '100%',
     color: theme.palette.text.secondary,
@@ -33,20 +34,17 @@ const Header = ({toggleMobileSidebar}: ItemType) => {
   return (
     <AppBarStyled position="sticky" color="default">
       <ToolbarStyled>
+        {/* Menu Button - Har screen par visible hoga */}
         <IconButton
           color="inherit"
           aria-label="menu"
-          onClick={toggleMobileSidebar}
+          onClick={lgUp ? toggleDesktopSidebar : toggleMobileSidebar}
           sx={{
-            display: {
-              lg: "none",
-              xs: "inline",
-            },
+            display: "inline-flex", // Mobile aur Desktop dono par show hoga
           }}
         >
           <IconMenu width="20" height="20" />
         </IconButton>
-
 
         <IconButton
           size="large"
@@ -58,11 +56,11 @@ const Header = ({toggleMobileSidebar}: ItemType) => {
           <Badge variant="dot" color="primary">
             <IconBellRinging size="21" stroke="1.5" />
           </Badge>
-
         </IconButton>
+
         <Box flexGrow={1} />
         <Stack spacing={1} direction="row" alignItems="center">
-          <Button variant="contained" component={Link} href="/authentication/sign-in"   disableElevation color="primary" >
+          <Button variant="contained" component={Link} href="/authentication/sign-in" disableElevation color="primary">
             sign-in
           </Button>
           <Profile />
