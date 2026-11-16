@@ -13,7 +13,7 @@ const Logo = () => {
 
     </div>
      <div>
-       <h2 className="text-xl font-bold ">RxPilot</h2>
+       <h2 className="text-xl font-bold ">RxPilot </h2>
       
      </div>
    </div>

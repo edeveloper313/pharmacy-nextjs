@@ -40,7 +40,7 @@ import {
   Search,
   EditOutlined,
   DeleteOutline,
-  DownloadOutlined,
+  
   Close,
   Refresh,
   CloudDownloadOutlined,
@@ -780,17 +780,7 @@ export default function ProductPage() {
 
                     <TableCell>
                       <Stack direction="row" spacing={0.5}>
-                        <Tooltip title="Download">
-                          <span>
-                            <IconButton
-                              size="small"
-                              disabled={item.status === "Out of Stock"}
-                              sx={{ color: "#2563eb" }}
-                            >
-                              <DownloadOutlined fontSize="small" />
-                            </IconButton>
-                          </span>
-                        </Tooltip>
+                        
                         <Tooltip title="Edit">
                           <IconButton
                             size="small"
