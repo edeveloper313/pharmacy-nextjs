@@ -2,7 +2,7 @@ import React from "react";
 import Menuitems from "./MenuItems";
 import { Box, Typography } from "@mui/material";
 import {
-  Logo,
+  
   Sidebar as MUI_Sidebar,
   Menu,
   MenuItem,
@@ -11,6 +11,7 @@ import {
 import { IconPoint } from '@tabler/icons-react';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Logo from "../shared/logo/Logo";
 
 
 
@@ -75,7 +76,7 @@ const SidebarItems = () => {
     < >
       <MUI_Sidebar width={"100%"} showProfile={false} themeColor={"#5D87FF"} themeSecondaryColor={'#49beff'} >
 
-        <Logo img='/images/logos/dark-logo.svg' component={Link} to="/" >Modernize</Logo>
+        <Logo/>
 
         {renderMenuItems(Menuitems, pathDirect)}
       
