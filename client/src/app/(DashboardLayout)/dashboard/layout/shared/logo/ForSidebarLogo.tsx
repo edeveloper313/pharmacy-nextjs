@@ -15,7 +15,7 @@ const Logo = ({ isSidebarOpen = true }: LogoProps) => {
       <div className={`relative shrink-0 transition-all duration-300 ${isSidebarOpen ? 'h-12 w-12' : 'h-10 w-10'}`}>
         <Image 
           src="/images/logos/pharmacy-logo.png" 
-          alt="logo"  
+          alt="logo"    
           priority={true} 
           className="object-contain object-center" 
           fill={true}  
