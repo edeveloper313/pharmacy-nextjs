@@ -18,7 +18,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         {/* Yahan humne apna naya wrapper use kiya hai */}
-        <ThemeProviderWrapper>
+        <ThemeProviderWrapper >
           {children}
         </ThemeProviderWrapper>
       </body>

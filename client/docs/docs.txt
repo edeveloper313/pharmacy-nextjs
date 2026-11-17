@@ -1,0 +1,69 @@
+RXPOILT
+
+PAGES:
+1) Customer Entry 
+    i) Hospital Name
+    ii) Hospital Address
+    iii) Purchaser Name 
+    iv) purchaser Phone number
+    v) Purchaser Address
+    vi) Purchaser NTN
+    vii) HT person (Kon is order ko manage kara ga.)
+    ix) Credit day (Contract days)
+
+2) Product Entry
+    i) Product Name
+    ii) porduct type
+    iii) mrp
+    iv) tp
+    v) sell tax 
+    vi) ht group
+
+3) Purchase Invoice 
+    i) Product id
+    ii) product name 
+    iii) Client/ customer name ( ager same client na previos ager purchaseing ke ho to wo bhi list me show hon ge. )
+     
+4) sale order etnry (Hospital recovery Entry's)
+    i) S.NO/ id
+    ii) Product Name
+    iii) product id
+    iv) qty
+    v) tp
+    vi) discount
+ 
+5)  sale invoice etnry (Sale Invoice Updating) 
+    i) purchasing id
+
+6) Sales Order Entry (only admin access )
+Sare invoices and project me har data ko yaha sa access kar sakta hain. or update, delete sab kuch kar sakta hain.
+
+    i) Purchasing id
+    ii) Product name
+    iii) Client name
+    iv) Groupt name (auto show)
+
+7) Master Product Entry/ Master Client Entry (report genrator)
+
+    i) Date
+    ii) Detial, Summry (in selector)
+    iii) Hospital name
+    iv) porduct name
+    v) client name
+    vi) group name 
+
+8) Sales Order Status (kitna order tha or kitna pending ha.)
+
+    i) hospital name
+    ii) client name
+    iii) company group
+
+9) Sale Invoice Listing (pending amount)
+
+    i) hospital name
+    ii) client name
+    iii) groupt name
+    iv) Total Balance (type: Button, kitna pay kar na hain, kitna aa ha hain. in total)
+
+NOTE:
+I) Master means Admin Access
