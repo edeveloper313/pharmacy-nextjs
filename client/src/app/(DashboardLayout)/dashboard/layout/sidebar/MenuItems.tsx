@@ -13,7 +13,8 @@ import {
   IconShieldLock,
   IconLogin,
   IconUserPlus,
-  IconAddressBook
+  IconAddressBook,
+  
 } from "@tabler/icons-react";
 
 import { uniqueId } from "lodash";
@@ -81,6 +82,12 @@ const Menuitems = [
     title: "Master Product Entry",
     icon: IconPackage,
     href: "/dashboard/master-product-entry",
+  },
+    {
+    id: uniqueId(),
+    title: "Master Client Entry",
+    icon: IconAddressBook,
+    href: "/dashboard/master-client-entry",
   },
   {
     id: uniqueId(),
