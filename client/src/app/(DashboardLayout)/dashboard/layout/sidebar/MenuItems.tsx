@@ -37,9 +37,9 @@ const Menuitems = [
  
   {
     id: uniqueId(),
-    title: "Product Entry",
+    title: "Product",
     icon: IconPackage,
-    href: "/dashboard/product-entry",
+    href: "/dashboard/product",
   },
   {
     id: uniqueId(),
@@ -57,6 +57,18 @@ const Menuitems = [
     title: "Sale Order Entry",
     icon: IconShoppingCart,
     href: "/dashboard/sale-order-entry",
+  },
+   {
+    id: uniqueId(),
+    title: "Sales Invoice Updating",
+    icon: IconReceipt,
+    href: "/dashboard/sale-invoice-updating",
+  },
+   {
+    id: uniqueId(),
+    title: "Sales Order Status",
+    icon: IconChartBar,
+    href: "/dashboard/sales-order-status",
   },
   {
     id: uniqueId(),

@@ -437,7 +437,7 @@ export default function PurchaseInvoicePage() {
       remainingBalance,
       dueDate: form.dueDate,
     });
-    showMessage("success", "Purchase invoice saved successfully ");
+    showMessage("success", "Purchase invoice saved successfully");
   };
 
   return (

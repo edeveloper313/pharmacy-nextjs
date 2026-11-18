@@ -40,7 +40,7 @@ RXPILOT SYSTEM REQUIREMENTS
 
 6.  MASTER PRODUCT ENTRY / MASTER CLIENT ENTRY (REPORT GENERATOR)
        i. Date
-       ii. Detail / Summary (available through a selector)
+       ii. Detail / Summary (summary me data cahiye ya detial me)
        iii. Hospital Name
        iv. Product Name
        v. Client Name
