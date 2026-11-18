@@ -11,13 +11,6 @@ PAGES:
     vii) HT person (Kon is order ko manage kara ga.)
     ix) Credit day (Contract days)
 
-2) Product Entry
-    i) Product Name
-    ii) porduct type
-    iii) mrp
-    iv) tp
-    v) sell tax 
-    vi) ht group
 
 3) Purchase Invoice 
     i) Product id
@@ -67,3 +60,48 @@ Sare invoices and project me har data ko yaha sa access kar sakta hain. or updat
 
 NOTE:
 I) Master means Admin Access
+
+
+
+
+
+
+# Invoice/ Billing 
+invoice genrat kar ne ka liye ya fileds hone cahiye or invoice genration me ya chizen hon ge he hon ge.
+
+1) Report Genration ka time, company name, address, phone number, owner name. aa jata he. (company aik baar he add ho ge or report ka time sirf company select ho ge.)
+2) Per piece Qty:  (kabhi kabhi per piece ka hisab se bhi report genrator kar ne par te ha. (like: in one cart 10 tablet, in one box 2 carts: 60 piece in one box, box * total carton = 3000) )
+3) Total Qty: (kabhi kabhi per box ka hisab sa bhi report cahiya hote he. (like: 1 carton 30 box, total carton 50: 1500 boxes) ) 
+4) MFG (manufacturing date)
+5) EXP (expiry date)
+6) TP (Trade price) : Trade Entry ka time dalta hain.
+7) MRP : Trade Entry ka time dalta hain.
+8) Rate (Amount dalta hain to discount aa jata ha or discount dalta hain to rate a jata he.)
+9) Date 
+10) Invoice number
+11) Batch number
+12) generic (optional) 
+13) Sirf generic wise bhi invoice nikale jaa sage. (optional)
+or ya chizen invoice genration print kar ne wala par hote hain. in options
+1) Each pice invoice
+2) Batch wise invoice
+3) TP (Trade price)
+4) Print & DC (Delivery Challan) Button
+
+
+# Product
+    i)Product id
+    ii) Product Name
+    iii) porduct type
+    iv) mrp
+    v) tp
+    vi) sell tax 
+    vii) ht group
+    ix) superlayer
+    x) Generic
+    xi) TP (Trade price)
+    xx) MRP (Maximum Retail Price)
+    xxx) active/ non-active
+    Description
+
+# Supply Contract:
