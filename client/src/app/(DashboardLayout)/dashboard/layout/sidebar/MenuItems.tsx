@@ -13,6 +13,7 @@ import {
   IconShieldLock,
   IconLogin,
   IconUserPlus,
+  IconAddressBook
 } from "@tabler/icons-react";
 
 import { uniqueId } from "lodash";
@@ -44,6 +45,18 @@ const Menuitems = [
     title: "Product",
     icon: IconPackage,
     href: "/dashboard/product",
+  },
+  {
+    id: uniqueId(),
+    title: "Customer Entry",
+    icon: IconAddressBook,
+    href: "/dashboard/customer-entry",
+  },
+    {
+    id: uniqueId(),
+    title: "Purchase Invoice",
+    icon: IconUserPlus,
+    href: "/dashboard/purchase-invoice",
   },
   {
     id: uniqueId(),

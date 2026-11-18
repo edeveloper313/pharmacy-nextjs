@@ -23,6 +23,7 @@ import {
   FormControlLabel,
   Chip,
   InputAdornment,
+  AlertColor,
 } from "@mui/material";
 
 import {
@@ -44,9 +45,7 @@ import {
   SmsOutlined,
   BackupOutlined,
 } from "@mui/icons-material";
-
-import SuccessAlert from "@/app/components/SuccessAlert";
-import ErrorAlert from "@/app/components/ErrorAlert";
+import Alert from "@/app/components/Alert";
 
 // ==========================================
 // SETTINGS SECTION CARD
@@ -205,6 +204,7 @@ export default function SettingsPage() {
 
   const [settings, setSettings] = useState(initialSettings);
 
+  const [alert, setAlert] = useState<{ type: AlertColor; message: string } | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
 
@@ -313,13 +313,14 @@ const inputProps = {
 
       {/* ALERTS */}
 
-      {showSuccess && (
-        <SuccessAlert message="Settings saved successfully!" />
-      )}
+    {alert && (
+  <Alert
+    key={alert.message}
+    type={alert.type}
+    message={alert.message}
+  />
+)}
 
-      {showError && (
-        <ErrorAlert message="Unable to save settings. Please try again!" />
-      )}
 
       {/* ================================= */}
       {/* PAGE HEADER */}

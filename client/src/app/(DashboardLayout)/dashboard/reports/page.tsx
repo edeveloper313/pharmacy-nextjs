@@ -26,6 +26,7 @@ import {
   TableHead,
   TableRow,
   TextField,
+  AlertColor,
 } from "@mui/material";
 
 import {
@@ -44,8 +45,8 @@ import {
   ArrowDownward,
 } from "@mui/icons-material";
 
-import SuccessAlert from "@/app/components/SuccessAlert";
-import ErrorAlert from "@/app/components/ErrorAlert";
+import Alert from "@/app/components/Alert";
+
 
 // ==========================================
 // DEMO REPORT DATA
@@ -240,6 +241,8 @@ export default function ReportsPage() {
 
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
+  
+  const [alert, setAlert] = useState<{ type: AlertColor; message: string } | null>(null);
 
   // ========================================
   // CSV EXPORT
@@ -322,13 +325,15 @@ export default function ReportsPage() {
 
       {/* ALERTS */}
 
-      {showSuccess && (
-        <SuccessAlert message="Report exported successfully!" />
-      )}
+   
+{alert && (
+  <Alert
+    key={alert.message}
+    type={alert.type}
+    message={alert.message}
+  />
+)}
 
-      {showError && (
-        <ErrorAlert message="Unable to export report!" />
-      )}
 
       {/* ================================= */}
       {/* PAGE HEADER */}

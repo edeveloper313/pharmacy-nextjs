@@ -17,6 +17,7 @@ import {
   InputAdornment,
   Stack,
   Divider,
+  AlertColor,
 } from "@mui/material";
 
 import {
@@ -31,8 +32,8 @@ import {
   BusinessOutlined,
 } from "@mui/icons-material";
 
-import SuccessAlert from "@/app/components/SuccessAlert";
-import ErrorAlert from "@/app/components/ErrorAlert";
+import Alert from "@/app/components/Alert";
+
 
 export default function ProfilePage() {
   const [showPass, setShowPass] = useState(false);
@@ -43,6 +44,7 @@ export default function ProfilePage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
 
+  const [alert, setAlert] = useState<{ type: AlertColor; message: string } | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   // Profile Image Upload
@@ -110,13 +112,13 @@ export default function ProfilePage() {
 
       {/* ALERTS */}
 
-      {showSuccess && (
-        <SuccessAlert message="Profile updated successfully!" />
-      )}
-
-      {showError && (
-        <ErrorAlert message="Something went wrong. Please try again!" />
-      )}
+{alert && (
+  <Alert
+    key={alert.message}
+    type={alert.type}
+    message={alert.message}
+  />
+)}
 
       {/* PAGE HEADER */}
 

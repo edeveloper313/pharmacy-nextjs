@@ -47,8 +47,8 @@ import {
   Refresh,
 } from "@mui/icons-material";
 
-import SuccessAlert from "@/app/components/SuccessAlert";
-import ErrorAlert from "@/app/components/ErrorAlert";
+import Alert from "@/app/components/Alert";
+
 import { AlertState } from "@/app/components/types/types";
 
 // ============================================
@@ -185,8 +185,15 @@ export default function ProductPage() {
         boxSizing: "border-box",
       }}
     >
-      {alert?.type === "success" && <SuccessAlert key={alert.message} message={alert.message} />}
-      {alert?.type === "error" && <ErrorAlert key={alert.message} message={alert.message} />}
+      
+{alert && (
+  <Alert
+    key={alert.message}
+    type={alert.type}
+    message={alert.message}
+  />
+)}
+
 
       {/* HEADER */}
       <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ xs: "stretch", sm: "center" }} spacing={2} mb={3}>
