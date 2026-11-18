@@ -2,6 +2,7 @@ import {
   IconLayoutDashboard,
   IconUserCircle,
   IconSettings,
+  IconFileInvoice,
   IconPackage,
   IconUsers,
   IconShoppingCart,
@@ -88,6 +89,12 @@ const Menuitems = [
     title: "Master Client Entry",
     icon: IconAddressBook,
     href: "/dashboard/master-client-entry",
+  },
+   {
+    id: uniqueId(),
+    title: "Sale Invoice listing",
+    icon:IconFileInvoice ,
+    href: "/dashboard/sales-invoice-listing",
   },
   {
     id: uniqueId(),
