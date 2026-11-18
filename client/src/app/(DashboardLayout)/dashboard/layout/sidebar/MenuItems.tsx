@@ -34,17 +34,12 @@ const Menuitems = [
     icon: IconUserCircle,
     href: "/dashboard/profile",
   },
-  // {
-  //   id: uniqueId(),
-  //   title: "Setting",
-  //   icon: IconSettings,
-  //   href: "/dashboard/setting",
-  // },
+ 
   {
     id: uniqueId(),
-    title: "Product",
+    title: "Product Entry",
     icon: IconPackage,
-    href: "/dashboard/product",
+    href: "/dashboard/product-entry",
   },
   {
     id: uniqueId(),
@@ -57,6 +52,11 @@ const Menuitems = [
     title: "Purchase Invoice",
     icon: IconUserPlus,
     href: "/dashboard/purchase-invoice",
+  },  {
+    id: uniqueId(),
+    title: "Sale Order Entry",
+    icon: IconShoppingCart,
+    href: "/dashboard/sale-order-entry",
   },
   {
     id: uniqueId(),
