@@ -76,6 +76,12 @@ const Menuitems = [
     icon: IconUsers,
     href: "/dashboard/client-management",
   },
+    {
+    id: uniqueId(),
+    title: "Master Product Entry",
+    icon: IconPackage,
+    href: "/dashboard/master-product-entry",
+  },
   {
     id: uniqueId(),
     title: "Smart Purchase",
