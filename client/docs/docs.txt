@@ -89,7 +89,7 @@ or ya chizen invoice genration print kar ne wala par hote hain. in options
 4) Print & DC (Delivery Challan) Button
 
 
-# Product
+# Product Entry
     i)Product id
     ii) Product Name
     iii) porduct type
@@ -97,11 +97,26 @@ or ya chizen invoice genration print kar ne wala par hote hain. in options
     v) tp
     vi) sell tax 
     vii) ht group
-    ix) superlayer
+    ix) supplier
     x) Generic
-    xi) TP (Trade price)
+    xi) TP (Trade price, as per Batch) 
     xx) MRP (Maximum Retail Price)
     xxx) active/ non-active
     Description
 
 # Supply Contract:
+
+    i) Date: From to To
+    ii) supplier/ Group/ client name
+    iii) Phone number
+    iv) address
+    
+# supplier Invoice Crose Check From
+
+    i) Group/ Supplier/ client name
+    ii) Contract (auto as per filed one)
+    iii) From Date (as per Contract)
+    iv) To Date (as per Contract)
+    v) product list with name, price, Qty, discount (as per Contract)
+    vi) Total Price
+    vii) Contract active/ non-active
