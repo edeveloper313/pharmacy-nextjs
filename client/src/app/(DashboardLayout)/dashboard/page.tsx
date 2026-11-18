@@ -41,7 +41,7 @@ import {
 } from "@mui/icons-material";
 
 import PageContainer from "@/app/(DashboardLayout)/dashboard/components/container/PageContainer";
-import SuccessAlert from "@/app/components/SuccessAlert";
+import Alert from "@/app/components/Alert";
 
 // ==========================================
 // DASHBOARD DATA
@@ -311,8 +311,12 @@ const Dashboard = () => {
       title="Dashboard - Rx Pilot"
       description="Rx Pilot Business Dashboard"
     >
-      <SuccessAlert message="Login Successfully" />
-
+      
+<Alert
+    key="Login Successfully"
+    type="success"
+    message="Login Successfully"
+  />
       <Box sx={{ width: "100%", pb: 3 }}>
 
         {/* HEADER */}

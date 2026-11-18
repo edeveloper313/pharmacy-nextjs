@@ -47,7 +47,7 @@ import {
 } from "@mui/icons-material";
 
 // Make sure these paths match your project structure
-import SuccessAlert from "@/app/components/SuccessAlert";
+
 
 import { AlertState } from "@/app/components/types/types";
 
