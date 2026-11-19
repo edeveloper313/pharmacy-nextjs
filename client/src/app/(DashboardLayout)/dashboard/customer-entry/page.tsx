@@ -2,13 +2,26 @@
 
 import React, { useState } from "react";
 import {
-  Box, Card, CardContent, Typography, Stack, Button, TextField,
-  MenuItem, Divider, Avatar, InputAdornment,
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Stack,
+  Button,
+  TextField,
+  MenuItem,
+  Divider,
+  Avatar,
+  InputAdornment,
 } from "@mui/material";
 import type { AlertColor } from "@mui/material/Alert";
 import {
-  PersonOutline, AssignmentOutlined, LocalPharmacyOutlined,
-  SaveOutlined, RestartAltOutlined, AccountBalanceWalletOutlined,
+  PersonOutline,
+  AssignmentOutlined,
+  LocalPharmacyOutlined,
+  SaveOutlined,
+  RestartAltOutlined,
+  AccountBalanceWalletOutlined,
 } from "@mui/icons-material";
 
 // Reuse the alert component and AlertState type already present in the project.
@@ -16,15 +29,15 @@ import Alert from "@/app/components/Alert";
 import type { AlertState } from "@/app/components/types/types";
 
 type CustomerType =
-  | "Pharmacy / Medical Store"
-  | "Hospital"
   | "Clinic"
-  | "Wholesale Distributor"
-  | "Doctor";
+  | "Doctor"
+  | "Hospital"
+  | "Pharmacy / Medical Store"
+  | "Wholesale Distributor";
 
 type CustomerForm = {
   customerType: CustomerType | "";
-  customerName: string;
+
   city: string;
   area: string;
   address: string;
@@ -32,8 +45,7 @@ type CustomerForm = {
   ntn: string;
   strn: string;
   purchaserName: string;
-  purchaserPhone: string;
-  purchaserAddress: string;
+  whatsappnumber: string;
   htPerson: string;
   salesRepresentative: string;
   creditDays: string;
@@ -43,7 +55,7 @@ type CustomerForm = {
 
 const createEmptyForm = (): CustomerForm => ({
   customerType: "",
-  customerName: "",
+
   city: "",
   area: "",
   address: "",
@@ -51,21 +63,20 @@ const createEmptyForm = (): CustomerForm => ({
   ntn: "",
   strn: "",
   purchaserName: "",
-  purchaserPhone: "",
-  purchaserAddress: "",
+  whatsappnumber: "",
+
   htPerson: "",
   salesRepresentative: "",
   creditDays: "",
   creditLimit: "",
   status: "",
 });
-
 const customerTypes: CustomerType[] = [
-  "Pharmacy / Medical Store",
-  "Hospital",
   "Clinic",
-  "Wholesale Distributor",
   "Doctor",
+  "Hospital",
+  "Pharmacy / Medical Store",
+  "Wholesale Distributor",
 ];
 
 const creditOptions = [
@@ -109,15 +120,23 @@ function Section({ icon, title, subtitle, children }: SectionProps) {
         <Avatar
           variant="rounded"
           sx={{
-            bgcolor: "#eff6ff", color: "#2563eb", width: 42, height: 42,
-            borderRadius: 2, flexShrink: 0,
+            bgcolor: "#eff6ff",
+            color: "#2563eb",
+            width: 42,
+            height: 42,
+            borderRadius: 2,
+            flexShrink: 0,
           }}
         >
           {icon}
         </Avatar>
         <Box minWidth={0}>
-          <Typography fontWeight={700} fontSize={16}>{title}</Typography>
-          <Typography variant="caption" color="text.secondary">{subtitle}</Typography>
+          <Typography fontWeight={700} fontSize={16}>
+            {title}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {subtitle}
+          </Typography>
         </Box>
       </Stack>
       {children}
@@ -134,7 +153,9 @@ export default function CustomerEntryPage() {
   };
 
   // One handler supports both regular TextFields and MUI select fields.
-  const handleChange = (event: { target: { name: string; value: unknown } }) => {
+  const handleChange = (event: {
+    target: { name: string; value: unknown };
+  }) => {
     const { name, value } = event.target;
     setForm((previous) => ({ ...previous, [name]: String(value) }));
     setAlert(null);
@@ -147,8 +168,13 @@ export default function CustomerEntryPage() {
 
   const handleSave = () => {
     const requiredFields: (keyof CustomerForm)[] = [
-      "customerType", "customerName", "city", "address",
-      "purchaserName", "purchaserPhone", "htPerson", "creditDays",
+      "customerType",
+      "city",
+      "address",
+      "purchaserName",
+      "whatsappnumber",
+      "htPerson",
+      "creditDays",
     ];
 
     if (requiredFields.some((key) => !String(form[key]).trim())) {
@@ -157,15 +183,19 @@ export default function CustomerEntryPage() {
     }
 
     // Accept Pakistani mobile numbers with optional spaces or hyphens.
-    const normalizedPhone = form.purchaserPhone.replace(/[\s-]/g, "");
+    const normalizedPhone = form.whatsappnumber.replace(/[\s-]/g, "");
     if (!/^03\d{9}$/.test(normalizedPhone)) {
-      showAlert("error", "Please enter a valid Pakistani mobile number (03XXXXXXXXX).");
+      showAlert(
+        "error",
+        "Please enter a valid Pakistani mobile number (03XXXXXXXXX).",
+      );
       return;
     }
 
     if (
       form.creditLimit.trim() !== "" &&
-      (!Number.isFinite(Number(form.creditLimit)) || Number(form.creditLimit) < 0)
+      (!Number.isFinite(Number(form.creditLimit)) ||
+        Number(form.creditLimit) < 0)
     ) {
       showAlert("error", "Please enter a valid non-negative credit limit.");
       return;
@@ -175,35 +205,55 @@ export default function CustomerEntryPage() {
     console.log("Customer Data:", {
       ...form,
       creditDays: Number(form.creditDays),
-      creditLimit: form.creditLimit.trim() === "" ? null : Number(form.creditLimit),
+      creditLimit:
+        form.creditLimit.trim() === "" ? null : Number(form.creditLimit),
     });
     showAlert("success", "Customer details validated successfully. (Demo)");
   };
-
   const getRegistrationLabel = () => {
     switch (form.customerType) {
-      case "Pharmacy / Medical Store": return "Drug Sale License Number";
-      case "Wholesale Distributor": return "Drug Distribution License Number";
-      case "Hospital": return "Hospital Registration Number";
-      case "Clinic": return "Clinic Registration Number";
-      case "Doctor": return "PMDC Registration Number";
-      default: return "Registration Number";
+      case "Clinic":
+        return "Clinic Registration Number";
+      case "Doctor":
+        return "PMDC Registration Number";
+      case "Hospital":
+        return "Hospital Registration Number";
+      case "Pharmacy / Medical Store":
+        return "Drug Sale License Number";
+      case "Wholesale Distributor":
+        return "Drug Distribution License Number";
+      default:
+        return "Registration Number";
     }
   };
 
   const getRegistrationPlaceholder = () => {
     switch (form.customerType) {
-      case "Doctor": return "e.g. PMDC-12345";
-      case "Pharmacy / Medical Store": return "Enter drug sale license number";
-      case "Wholesale Distributor": return "Enter distribution license number";
-      case "Hospital": return "Enter hospital registration number";
-      case "Clinic": return "Enter clinic registration number";
-      default: return "Enter registration number";
+      case "Clinic":
+        return "Enter clinic registration number";
+      case "Doctor":
+        return "e.g. PMDC-12345";
+      case "Hospital":
+        return "Enter hospital registration number";
+      case "Pharmacy / Medical Store":
+        return "Enter drug sale license number";
+      case "Wholesale Distributor":
+        return "Enter distribution license number";
+      default:
+        return "Enter registration number";
     }
   };
 
   return (
-    <Box sx={{ width: "100%", maxWidth: "100%", minWidth: 0, overflowX: "hidden", pb: 4 }}>
+    <Box
+      sx={{
+        width: "100%",
+        maxWidth: "100%",
+        minWidth: 0,
+        overflowX: "hidden",
+        pb: 4,
+      }}
+    >
       <Stack
         direction={{ xs: "column", sm: "row" }}
         justifyContent="space-between"
@@ -212,69 +262,252 @@ export default function CustomerEntryPage() {
         mb={3}
       >
         <Box>
-          <Typography variant="h5" fontWeight={800} color="#1e293b">Customer Entry</Typography>
+          <Typography variant="h5" fontWeight={800} color="#1e293b">
+            Customer Entry
+          </Typography>
           <Typography variant="body2" color="text.secondary" mt={0.5}>
             Register and manage pharmaceutical customers.
           </Typography>
         </Box>
-        <Box sx={{ bgcolor: "#eff6ff", color: "#2563eb", borderRadius: 2, px: 1.5, py: 0.8, width: "fit-content" }}>
-          <Typography fontSize={12} fontWeight={700}>NEW CUSTOMER</Typography>
+        <Box
+          sx={{
+            bgcolor: "#eff6ff",
+            color: "#2563eb",
+            borderRadius: 2,
+            px: 1.5,
+            py: 0.8,
+            width: "fit-content",
+          }}
+        >
+          <Typography fontSize={12} fontWeight={700}>
+            NEW CUSTOMER
+          </Typography>
         </Box>
       </Stack>
 
-      <Card elevation={0} sx={{ width: "100%", minWidth: 0, border: "1px solid #e8edf3", borderRadius: 3, overflow: "hidden" }}>
-        <CardContent sx={{ p: { xs: 2, sm: 3, md: 3.5 }, "&:last-child": { pb: { xs: 2, sm: 3, md: 3.5 } } }}>
+      <Card
+        elevation={0}
+        sx={{
+          width: "100%",
+          minWidth: 0,
+          border: "1px solid #e8edf3",
+          borderRadius: 3,
+          overflow: "hidden",
+        }}
+      >
+        <CardContent
+          sx={{
+            p: { xs: 2, sm: 3, md: 3.5 },
+            "&:last-child": { pb: { xs: 2, sm: 3, md: 3.5 } },
+          }}
+        >
           <Stack spacing={3.5}>
-            <Section icon={<LocalPharmacyOutlined />} title="Customer Information" subtitle="Basic business and customer details.">
+            <Section
+              icon={<LocalPharmacyOutlined />}
+              title="Customer Information"
+              subtitle="Basic business and customer details."
+            >
               <Box sx={gridSx}>
-                <TextField select fullWidth required size="small" label="Customer Type" name="customerType" value={form.customerType} onChange={handleChange} sx={{ ...fieldSx, gridColumn: "1 / -1" }}>
+                <TextField
+                  select
+                  fullWidth
+                  required
+                  size="small"
+                  label="Customer Type"
+                  name="customerType"
+                  value={form.customerType}
+                  onChange={handleChange}
+                  sx={{ ...fieldSx, gridColumn: "1 / -1" }}
+                >
                   <MenuItem value="">Select customer type</MenuItem>
-                  {customerTypes.map((type) => <MenuItem key={type} value={type}>{type}</MenuItem>)}
+                  {customerTypes.map((type) => (
+                    <MenuItem key={type} value={type}>
+                      {type}
+                    </MenuItem>
+                  ))}
                 </TextField>
-                <TextField fullWidth required size="small" label="Customer / Business Name" name="customerName" value={form.customerName} onChange={handleChange} placeholder="e.g. City Medical Store" sx={{ ...fieldSx, gridColumn: "1 / -1" }} />
-                <TextField fullWidth required size="small" label="City" name="city" value={form.city} onChange={handleChange} placeholder="e.g. Karachi" sx={fieldSx} />
-                <TextField fullWidth size="small" label="Area / Sales Zone" name="area" value={form.area} onChange={handleChange} placeholder="e.g. Gulshan-e-Iqbal" sx={fieldSx} />
-                <TextField fullWidth required multiline rows={2} size="small" label="Business Address" name="address" value={form.address} onChange={handleChange} placeholder="Enter complete business address" sx={{ ...fieldSx, gridColumn: "1 / -1" }} />
+                <TextField
+                  fullWidth
+                  required
+                  size="small"
+                  label="Customer / Business Name"
+                  name="customerName"
+                  value={form.customerName}
+                  onChange={handleChange}
+                  placeholder="e.g. City Medical Store"
+                  sx={{ ...fieldSx, gridColumn: "1 / -1" }}
+                />
+                <TextField
+                  fullWidth
+                  required
+                  size="small"
+                  label="+92 300 1234567"
+                  name="whatsappnumber"
+                  value={form.whatsappnumber}
+                  onChange={handleChange}
+                  placeholder="e.g. City Medical Store"
+                  sx={{ ...fieldSx, gridColumn: "1 / -1" }}
+                />
+                <TextField
+                  fullWidth
+                  required
+                  size="small"
+                  label="City"
+                  name="city"
+                  value={form.city}
+                  onChange={handleChange}
+                  placeholder="e.g. Karachi"
+                  sx={fieldSx}
+                />
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Area / Sales Zone"
+                  name="area"
+                  value={form.area}
+                  onChange={handleChange}
+                  placeholder="e.g. Gulshan-e-Iqbal"
+                  sx={fieldSx}
+                />
+                <TextField
+                  fullWidth
+                  required
+                  multiline
+                  rows={2}
+                  size="small"
+                  label="Business Address"
+                  name="address"
+                  value={form.address}
+                  onChange={handleChange}
+                  placeholder="Enter complete business address"
+                  sx={{ ...fieldSx, gridColumn: "1 / -1" }}
+                />
               </Box>
             </Section>
 
             <Divider />
 
-            <Section icon={<AssignmentOutlined />} title="Registration & Tax Information" subtitle="Business license and tax registration details.">
+            <Section
+              icon={<AssignmentOutlined />}
+              title="Registration & Tax Information"
+              subtitle="Business license and tax registration details."
+            >
               <Box sx={gridSx}>
-                <TextField fullWidth size="small" label={getRegistrationLabel()} name="registrationNumber" value={form.registrationNumber} onChange={handleChange} placeholder={getRegistrationPlaceholder()} sx={fieldSx} />
-                <TextField fullWidth size="small" label="NTN Number" name="ntn" value={form.ntn} onChange={handleChange} placeholder="e.g. 1234567-8" sx={fieldSx} />
-                <TextField fullWidth size="small" label="STRN Number" name="strn" value={form.strn} onChange={handleChange} placeholder="Enter sales tax registration" sx={{ ...fieldSx, gridColumn: "1 / -1" }} />
+                <TextField
+                  fullWidth
+                  size="small"
+                  label={getRegistrationLabel()}
+                  name="registrationNumber"
+                  value={form.registrationNumber}
+                  onChange={handleChange}
+                  placeholder={getRegistrationPlaceholder()}
+                  sx={fieldSx}
+                />
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="NTN Number"
+                  name="ntn"
+                  value={form.ntn}
+                  onChange={handleChange}
+                  placeholder="e.g. 1234567-8"
+                  sx={fieldSx}
+                />
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="STRN Number"
+                  name="strn"
+                  value={form.strn}
+                  onChange={handleChange}
+                  placeholder="Enter sales tax registration"
+                  sx={{ ...fieldSx, gridColumn: "1 / -1" }}
+                />
               </Box>
             </Section>
 
             <Divider />
 
-            <Section icon={<PersonOutline />} title="Purchaser & Contact Information" subtitle="Primary contact person and communication details.">
+            <Section
+              icon={<AccountBalanceWalletOutlined />}
+              title="Sales & Credit Management"
+              subtitle="Assign sales responsibility and payment terms."
+            >
               <Box sx={gridSx}>
-                <TextField fullWidth required size="small" label="Purchaser / Contact Name" name="purchaserName" value={form.purchaserName} onChange={handleChange} placeholder="Enter full name" sx={fieldSx} />
-                <TextField fullWidth required size="small" label="Mobile Number" name="purchaserPhone" type="tel" value={form.purchaserPhone} onChange={handleChange} placeholder="03XX-XXXXXXX" inputProps={{ inputMode: "numeric", maxLength: 12 }} sx={fieldSx} />
-                <TextField fullWidth multiline rows={2} size="small" label="Purchaser Address" name="purchaserAddress" value={form.purchaserAddress} onChange={handleChange} placeholder="Enter contact person's address" sx={{ ...fieldSx, gridColumn: "1 / -1" }} />
-              </Box>
-            </Section>
-
-            <Divider />
-
-            <Section icon={<AccountBalanceWalletOutlined />} title="Sales & Credit Management" subtitle="Assign sales responsibility and payment terms.">
-              <Box sx={gridSx}>
-                <TextField fullWidth required size="small" label="HT Person" name="htPerson" value={form.htPerson} onChange={handleChange} placeholder="Person responsible for managing this order" helperText="Responsible person for order management." sx={fieldSx} />
-                <TextField fullWidth size="small" select label="Sales Representative" name="salesRepresentative" value={form.salesRepresentative} onChange={handleChange} sx={fieldSx}>
+                <TextField
+                  fullWidth
+                  required
+                  size="small"
+                  label="HT Person"
+                  name="htPerson"
+                  value={form.htPerson}
+                  onChange={handleChange}
+                  placeholder="Person responsible for managing this order"
+                  helperText="Responsible person for order management."
+                  sx={fieldSx}
+                />
+                <TextField
+                  fullWidth
+                  size="small"
+                  select
+                  label="Sales Representative"
+                  name="salesRepresentative"
+                  value={form.salesRepresentative}
+                  onChange={handleChange}
+                  sx={fieldSx}
+                >
                   <MenuItem value="">Select Sales Representative</MenuItem>
                   <MenuItem value="Usman Khan">Usman Khan</MenuItem>
                   <MenuItem value="Ali Raza">Ali Raza</MenuItem>
                   <MenuItem value="Ahmed Hassan">Ahmed Hassan</MenuItem>
                 </TextField>
-                <TextField fullWidth required select size="small" label="Credit Days" name="creditDays" value={form.creditDays} onChange={handleChange} helperText="Contractual payment period." sx={fieldSx}>
+                <TextField
+                  fullWidth
+                  required
+                  select
+                  size="small"
+                  label="Credit Days"
+                  name="creditDays"
+                  value={form.creditDays}
+                  onChange={handleChange}
+                  helperText="Contractual payment period."
+                  sx={fieldSx}
+                >
                   <MenuItem value="">Select credit days</MenuItem>
-                  {creditOptions.map((item) => <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>)}
+                  {creditOptions.map((item) => (
+                    <MenuItem key={item.value} value={item.value}>
+                      {item.label}
+                    </MenuItem>
+                  ))}
                 </TextField>
-                <TextField fullWidth size="small" type="number" label="Credit Limit" name="creditLimit" value={form.creditLimit} onChange={handleChange} placeholder="e.g. 500000" inputProps={{ min: 0, step: "0.01" }} helperText="Maximum allowed outstanding amount." sx={fieldSx} InputProps={{ startAdornment: <InputAdornment position="start">PKR</InputAdornment> }} />
-                <TextField fullWidth select size="small" label="Customer Status" name="status" value={form.status} onChange={handleChange} sx={{ ...fieldSx, gridColumn: "1 / -1" }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  type="number"
+                  label="Credit Limit"
+                  name="creditLimit"
+                  value={form.creditLimit}
+                  onChange={handleChange}
+                  placeholder="e.g. 500000"
+                  inputProps={{ min: 0, step: "0.01" }}
+                  helperText="Maximum allowed outstanding amount."
+                  sx={fieldSx}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">PKR</InputAdornment>
+                    ),
+                  }}
+                />
+                <TextField
+                  fullWidth
+                  select
+                  size="small"
+                  label="Customer Status"
+                  name="status"
+                  value={form.status}
+                  onChange={handleChange}
+                  sx={{ ...fieldSx, gridColumn: "1 / -1" }}
+                >
                   <MenuItem value="">Select customer status</MenuItem>
                   <MenuItem value="Active">Active</MenuItem>
                   <MenuItem value="Inactive">Inactive</MenuItem>
@@ -285,11 +518,34 @@ export default function CustomerEntryPage() {
 
             <Divider />
 
-            <Stack direction={{ xs: "column-reverse", sm: "row" }} justifyContent="flex-end" spacing={1.5}>
-              <Button variant="outlined" color="inherit" startIcon={<RestartAltOutlined />} onClick={handleReset} sx={{ borderRadius: 2, textTransform: "none", minHeight: 42 }}>
+            <Stack
+              direction={{ xs: "column-reverse", sm: "row" }}
+              justifyContent="flex-end"
+              spacing={1.5}
+            >
+              <Button
+                variant="outlined"
+                color="inherit"
+                startIcon={<RestartAltOutlined />}
+                onClick={handleReset}
+                sx={{ borderRadius: 2, textTransform: "none", minHeight: 42 }}
+              >
                 Reset Form
               </Button>
-              <Button variant="contained" startIcon={<SaveOutlined />} onClick={handleSave} sx={{ bgcolor: "#2563eb", borderRadius: 2, textTransform: "none", boxShadow: "none", minHeight: 42, px: 3, "&:hover": { bgcolor: "#1d4ed8", boxShadow: "none" } }}>
+              <Button
+                variant="contained"
+                startIcon={<SaveOutlined />}
+                onClick={handleSave}
+                sx={{
+                  bgcolor: "#2563eb",
+                  borderRadius: 2,
+                  textTransform: "none",
+                  boxShadow: "none",
+                  minHeight: 42,
+                  px: 3,
+                  "&:hover": { bgcolor: "#1d4ed8", boxShadow: "none" },
+                }}
+              >
                 Save Customer
               </Button>
             </Stack>
@@ -298,7 +554,13 @@ export default function CustomerEntryPage() {
       </Card>
 
       {/* Existing project alert component (alert.tsx), not a newly-created alert. */}
-      {alert && <Alert key={`${alert.type}-${alert.message}`} type={alert.type} message={alert.message} />}
+      {alert && (
+        <Alert
+          key={`${alert.type}-${alert.message}`}
+          type={alert.type}
+          message={alert.message}
+        />
+      )}
     </Box>
   );
 }
