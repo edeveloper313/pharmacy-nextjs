@@ -471,7 +471,7 @@ if (Number(form.stock) <= 0) {
               name="generic"
               value={form.generic}
               onChange={handleChange}
-              placeholder="e.g. Acetaminophen "
+              placeholder="Acetaminophen "
             />
 
             <TextField
