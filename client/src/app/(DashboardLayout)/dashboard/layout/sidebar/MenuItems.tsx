@@ -50,9 +50,9 @@ const Menuitems = [
   },
   {
     id: uniqueId(),
-    title: "Purchase Entry",
+    title: "Purchase Order",
     icon: IconUserPlus,
-    href: "/dashboard/purchase-entry",
+    href: "/dashboard/purchase-order",
   },
   {
     id: uniqueId(),

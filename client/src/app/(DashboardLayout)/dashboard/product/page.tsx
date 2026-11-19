@@ -398,22 +398,7 @@ export default function ProductPage() {
           </Typography>
         </Box>
 
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleAdd}
-          sx={{
-            bgcolor: "#2563eb",
-            borderRadius: 2,
-            textTransform: "none",
-            boxShadow: "none",
-            px: 2.5,
-            whiteSpace: "nowrap",
-            width: { xs: "100%", sm: "auto" },
-          }}
-        >
-          Add Product
-        </Button>
+   
       </Stack>
 
       {/* PRODUCT ENTRY FORM */}
@@ -479,7 +464,7 @@ export default function ProductPage() {
             <TextField
               fullWidth
               size="small"
-              label="Generic *"
+              label="Generic"
               name="generic"
               value={form.generic}
               onChange={handleChange}
@@ -944,7 +929,7 @@ export default function ProductPage() {
             <TextField
               fullWidth
               size="small"
-              label="Generic *"
+              label="Generic"
               name="generic"
               value={form.generic}
               onChange={handleChange}

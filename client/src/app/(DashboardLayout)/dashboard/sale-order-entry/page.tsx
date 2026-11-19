@@ -41,11 +41,11 @@ import Alert from "@/app/components/Alert";
    ========================================================================= */
 
 type CustomerType =
-  | "Hospital"
   | "Clinic"
+  | "Doctor"
+  | "Hospital"
   | "Pharmacy / Medical Store"
-  | "Wholesale Distributor"
-  | "Doctor";
+  | "Wholesale Distributor";
 
 type Customer = {
   id: string;
@@ -99,13 +99,12 @@ const customers: Customer[] = [
   { id: "CUS-005", name: "Wellness Wholesale", type: "Wholesale Distributor", phone: "042-35678901", city: "Lahore" },
   { id: "CUS-006", name: "Dr. Ahmed Raza", type: "Doctor", phone: "0321-9876543", city: "Karachi" },
 ];
-
 const customerTypes: CustomerType[] = [
-  "Hospital",
   "Clinic",
+  "Doctor",
+  "Hospital",
   "Pharmacy / Medical Store",
   "Wholesale Distributor",
-  "Doctor",
 ];
 
 /* =========================================================================
