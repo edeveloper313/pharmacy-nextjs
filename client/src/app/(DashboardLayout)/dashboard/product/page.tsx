@@ -289,7 +289,7 @@ export default function ProductPage() {
   };
 
   const handleSave = () => {
-    const requiredFields = ["name", "generic ", "price", "stock"];
+    const requiredFields = ["name", "price", "stock"];
     if (requiredFields.some((key) => String(form[key] ?? "").trim() === "")) {
       return showAlert("error", "Please fill all required fields.");
     }
@@ -301,7 +301,10 @@ export default function ProductPage() {
     if (Number(form.stock) < 0) {
       return showAlert("error", "Stock cannot be negative.");
     }
-
+if (Number(form.stock) <= 0) {
+  return showAlert("warning", "Stock must be greater than 0.");
+}
+    
     const stockNum = Number(form.stock);
     const computedStatus =
       stockNum === 0
@@ -313,7 +316,7 @@ export default function ProductPage() {
     const productData = {
       ...form,
       name: form.name.trim(),
-      generic: form.generic.trim().toUpperCase(),
+      generic: form.generic.trim().toUpperCase() || "No Generic Name",
       price: Number(form.price),
       stock: stockNum,
       status: computedStatus,
