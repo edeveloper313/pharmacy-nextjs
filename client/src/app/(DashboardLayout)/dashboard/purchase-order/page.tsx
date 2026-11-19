@@ -430,7 +430,7 @@ export default function PurchaseInvoicePage() {
     if (items.length > 0 && supplier?.id !== selectedSupplier?.id) {
       showMessage(
         "error",
-        "Remove the current invoice items before changing supplier. One purchase invoice can contain items from one supplier.",
+        "Remove the current invoice items before changing supplier. One Purchase order can contain items from one supplier.",
       );
       return;
     }
@@ -548,19 +548,8 @@ export default function PurchaseInvoicePage() {
       return;
     }
 
-    // Demo only: connect this payload to your purchase invoice API/database.
-    console.log("Purchase Invoice:", {
-      supplier: selectedSupplier,
-      invoiceNumber: form.invoiceNumber,
-      invoiceDate: form.invoiceDate,
-      items,
-      grandTotal,
-      paymentType: form.paymentType,
-      paidAmount,
-      remainingBalance,
-      dueDate: form.dueDate,
-    });
-    showMessage("success", "Purchase invoice saved successfully");
+ 
+    showMessage("success", "Purchase order saved successfully");
   };
 
   const viewInvoiceStatus = viewInvoice ? getInvoiceStatus(viewInvoice) : null;
@@ -587,10 +576,10 @@ export default function PurchaseInvoicePage() {
       >
         <Box>
           <Typography variant="h5" fontWeight={800} color="#1e293b">
-            Purchase Invoice
+            Purchase order
           </Typography>
           <Typography variant="body2" color="text.secondary" mt={0.5}>
-            Create supplier purchase invoices, add product details and manage
+            Create supplier Purchase orders, add product details and manage
             purchase payments.
           </Typography>
         </Box>
@@ -605,7 +594,7 @@ export default function PurchaseInvoicePage() {
           }}
         >
           <Typography fontSize={12} fontWeight={700}>
-            NEW PURCHASE INVOICE
+            NEW Purchase order
           </Typography>
         </Box>
       </Stack>
@@ -625,7 +614,7 @@ export default function PurchaseInvoicePage() {
           <Stack spacing={3.5}>
             <Section
               icon={<BusinessOutlined />}
-              title="Purchase invoice"
+              title="Purchase order"
               subtitle="Select a supplier and enter invoice details, products, quantities and payment information."
             >
               <Box sx={gridSx}>
@@ -664,15 +653,31 @@ export default function PurchaseInvoicePage() {
                     </Box>
                   )}
                 />
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Supplier NTN"
-                  value={form.supplierNtn}
-                  placeholder="Auto-filled after supplier selection"
-                  InputProps={{ readOnly: true }}
-                  sx={fieldSx}
-                />
+              <TextField
+  fullWidth
+  size="small"
+  label="Supplier NTN"
+  value={form.supplierNtn}
+  placeholder="Auto-filled after supplier selection"
+  disabled
+  sx={{
+    ...fieldSx,
+    // input text dark rahe
+    "& .MuiInputBase-input.Mui-disabled": {
+      WebkitTextFillColor: "#1e293b",
+      color: "#1e293b",
+      opacity: 1,
+    },
+    // label thoda visible rahe (optional)
+    "& .MuiInputLabel-root.Mui-disabled": {
+      color: "#64748b",
+    },
+    // border halka rahe (optional)
+    "& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#e8edf3",
+    },
+  }}
+/>
                 <TextField
                   fullWidth
                   required
@@ -992,11 +997,11 @@ export default function PurchaseInvoicePage() {
             <Section
               icon={<HistoryOutlined />}
               title="Purchase Previous History"
-              subtitle="Review previous purchase invoices from this supplier and open an invoice to view complete details."
+              subtitle="Review previous Purchase orders from this supplier and open an invoice to view complete details."
             >
               {!selectedSupplier ? (
                 <MuiAlert severity="info">
-                  Select a supplier to view their previous purchase invoices.
+                  Select a supplier to view their previous Purchase orders.
                 </MuiAlert>
               ) : history.length === 0 ? (
                 <MuiAlert severity="info">
@@ -1410,7 +1415,7 @@ export default function PurchaseInvoicePage() {
                   "&:hover": { bgcolor: "#1d4ed8", boxShadow: "none" },
                 }}
               >
-                Save Purchase Invoice
+                Save Purchase order
               </Button>
             </Stack>
           </Stack>
