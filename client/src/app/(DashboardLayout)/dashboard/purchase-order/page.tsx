@@ -40,6 +40,7 @@ import {
   RestartAltOutlined,
   SaveOutlined,
   VisibilityOutlined,
+  PostAdd
 } from "@mui/icons-material";
 import Alert from "@/app/components/Alert";
 
@@ -1268,114 +1269,6 @@ export default function PurchaseInvoicePage() {
 
             <Divider />
 
-            <Section
-              icon={<AccountBalanceWalletOutlined />}
-              title="Payment & Invoice Summary"
-              subtitle="Review invoice total and record payment details."
-            >
-              <Box sx={gridSx}>
-                <TextField
-                  fullWidth
-                  required
-                  select
-                  size="small"
-                  label="Payment Type"
-                  name="paymentType"
-                  value={form.paymentType}
-                  onChange={handleChange}
-                  sx={fieldSx}
-                >
-                  <MenuItem value="" disabled>
-                    Select payment type
-                  </MenuItem>
-                  {[
-                    "Cash",
-                    "Bank Transfer",
-                    "Cheque",
-                    "Credit",
-                    "Online Transfer",
-                  ].map((type) => (
-                    <MenuItem key={type} value={type}>
-                      {type}
-                    </MenuItem>
-                  ))}
-                </TextField>
-                <TextField
-                  fullWidth
-                  size="small"
-                  type="number"
-                  label="Paid Amount (PKR)"
-                  name="paidAmount"
-                  value={form.paidAmount}
-                  onChange={handleChange}
-                  placeholder="Enter amount paid"
-                  inputProps={{ min: 0, step: "0.01" }}
-                  sx={fieldSx}
-                />
-                <TextField
-                  fullWidth
-                  size="small"
-                  type="date"
-                  label="Due Date"
-                  name="dueDate"
-                  value={form.dueDate}
-                  onChange={handleChange}
-                  InputLabelProps={{ shrink: true }}
-                  helperText="Required when an outstanding balance remains."
-                  sx={fieldSx}
-                />
-              </Box>
-              <Box
-                sx={{
-                  mt: 2,
-                  p: 2,
-                  bgcolor: "#f8fafc",
-                  border: "1px solid #e8edf3",
-                  borderRadius: 2,
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: {
-                      xs: "1fr 1fr",
-                      sm: "repeat(3, minmax(0, 1fr))",
-                    },
-                    gap: 1.5,
-                  }}
-                >
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">
-                      Sub Total (All Items)
-                    </Typography>
-                    <Typography fontWeight={700}>
-                      {money(
-                        items.reduce((sum, item) => sum + item.subTotal, 0),
-                      )}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">
-                      Grand Total
-                    </Typography>
-                    <Typography fontWeight={800} color="#2563eb">
-                      {money(grandTotal)}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">
-                      Remaining Balance
-                    </Typography>
-                    <Typography
-                      fontWeight={800}
-                      color={remainingBalance > 0 ? "#b45309" : "#15803d"}
-                    >
-                      {money(remainingBalance)}
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
-            </Section>
 
             {/* Custom toast alert (auto-hide after 2s). Key forces re-show on every new message. */}
             {message && (
@@ -1416,6 +1309,22 @@ export default function PurchaseInvoicePage() {
                 }}
               >
                 Save Purchase order
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<PostAdd />}
+                
+                sx={{
+                  bgcolor: "#2563eb",
+                  borderRadius: 2,
+                  textTransform: "none",
+                  boxShadow: "none",
+                  minHeight: 42,
+                  px: 3,
+                  "&:hover": { bgcolor: "#1d4ed8", boxShadow: "none" },
+                }}
+              >
+                Create Invoice
               </Button>
             </Stack>
           </Stack>
