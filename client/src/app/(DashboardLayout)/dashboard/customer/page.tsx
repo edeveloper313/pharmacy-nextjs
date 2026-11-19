@@ -37,7 +37,7 @@ type CustomerType =
 
 type CustomerForm = {
   customerType: CustomerType | "";
-
+  customerName: string;
   city: string;
   area: string;
   address: string;
@@ -55,7 +55,7 @@ type CustomerForm = {
 
 const createEmptyForm = (): CustomerForm => ({
   customerType: "",
-
+  customerName: "",
   city: "",
   area: "",
   address: "",
@@ -341,11 +341,11 @@ export default function CustomerEntryPage() {
                   fullWidth
                   required
                   size="small"
-                  label="+92 300 1234567"
+                  label="Whatsapp number"
                   name="whatsappnumber"
                   value={form.whatsappnumber}
                   onChange={handleChange}
-                  placeholder="e.g. City Medical Store"
+                  placeholder="030XXXXXXX"
                   sx={{ ...fieldSx, gridColumn: "1 / -1" }}
                 />
                 <TextField
