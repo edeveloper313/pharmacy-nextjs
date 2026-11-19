@@ -40,7 +40,6 @@ import {
   Search,
   EditOutlined,
   DeleteOutline,
-  
   Close,
   Refresh,
   CloudDownloadOutlined,
@@ -50,7 +49,7 @@ import {
 
 import Alert from "@/app/components/Alert";
 
-import { AlertState } from "@/app/components/types/types"; 
+import { AlertState } from "@/app/components/types/types";
 
 // ============================================
 // INITIAL DATA - PRODUCTS
@@ -58,81 +57,84 @@ import { AlertState } from "@/app/components/types/types";
 const initialProducts = [
   {
     id: 1,
-    name: "Wireless Bluetooth Headphones",
-    sku: "WBH-2026-001",
-    category: "Electronics",
-    price: 89.99,
+    name: "Panadol 500mg Tablets",
+    generic: "Paracetamol",
+    category: "OTC Medicines",
+    price: 25.0,
     stock: 145,
     status: "In Stock",
     createdAt: "2026-10-01",
-    description: "Premium noise-cancelling wireless headphones with 30-hour battery life.",
+    description:
+      "Paracetamol 500mg tablets used for temporary relief of pain and fever.",
   },
   {
     id: 2,
-    name: "Ergonomic Office Chair",
-    sku: "EOC-2026-002",
-    category: "Furniture",
-    price: 249.0,
+    name: "Augmentin 625mg Tablets",
+    generic: "Amoxicillin + Clavulanic Acid",
+    category: "Antibiotics",
+    price: 450.0,
     stock: 32,
     status: "In Stock",
     createdAt: "2026-09-15",
-    description: "Adjustable ergonomic office chair with lumbar support and breathable mesh.",
+    description:
+      "Prescription antibiotic combination used to treat certain bacterial infections.",
   },
   {
     id: 3,
-    name: "Stainless Steel Water Bottle",
-    sku: "SSW-2026-003",
-    category: "Home & Kitchen",
-    price: 24.5,
+    name: "Vitamin C 500mg Tablets",
+    generic: "Ascorbic Acid",
+    category: "Vitamins & Supplements",
+    price: 350.0,
     stock: 0,
     status: "Out of Stock",
     createdAt: "2026-08-20",
-    description: "Insulated 32oz water bottle keeps drinks cold for 24 hours.",
+    description:
+      "Vitamin C supplement to support normal immune system function.",
   },
   {
     id: 4,
-    name: "Mechanical Gaming Keyboard",
-    sku: "MGK-2026-004",
-    category: "Electronics",
-    price: 129.99,
+    name: "Digital Blood Pressure Monitor",
+    generic: "Automatic BP Monitor",
+    category: "Medical Devices",
+    price: 4500.0,
     stock: 78,
     status: "In Stock",
     createdAt: "2026-10-10",
-    description: "RGB backlit mechanical keyboard with hot-swappable switches.",
+    description:
+      "Automatic digital blood pressure monitor for measuring blood pressure at home.",
   },
   {
     id: 5,
-    name: "Organic Cotton T-Shirt",
-    sku: "OCT-2026-005",
-    category: "Apparel",
-    price: 19.99,
+    name: "Surgical Disposable Gloves",
+    generic: "Latex Examination Gloves",
+    category: "Surgical Supplies",
+    price: 850.0,
     stock: 12,
     status: "Low Stock",
     createdAt: "2026-09-28",
-    description: "Soft organic cotton crew neck t-shirt available in multiple colors.",
+    description: "Disposable medical gloves for hygiene and infection control.",
   },
   {
     id: 6,
-    name: "Smart Fitness Watch",
-    sku: "SFW-2026-006",
-    category: "Electronics",
-    price: 199.0,
+    name: "Digital Thermometer",
+    generic: "Digital Clinical Thermometer",
+    category: "Medical Devices",
+    price: 650.0,
     stock: 56,
     status: "In Stock",
     createdAt: "2026-10-05",
-    description: "Fitness tracker with heart rate monitor, GPS, and 7-day battery.",
+    description: "Digital thermometer for measuring body temperature.",
   },
 ];
 
 const emptyForm = {
   name: "",
-  sku: "",
-  category: "Electronics",
+  generic: "",
+  category: "OTC Medicines",
   price: "",
   stock: "",
   description: "",
 };
-
 // ============================================
 // SORTING FUNCTIONS
 // ============================================
@@ -174,14 +176,26 @@ const getStatusColor = (status) => {
 
 const getCategoryColor = (category) => {
   switch (category) {
-    case "Electronics":
+    case "Prescription Medicines":
       return "#2563eb";
-    case "Furniture":
+    case "OTC Medicines":
       return "#7c3aed";
-    case "Home & Kitchen":
+    case "Antibiotics":
       return "#0891b2";
-    case "Apparel":
+    case "Vitamins & Supplements":
       return "#db2777";
+    case "Medical Devices":
+      return "#059669";
+    case "Surgical Supplies":
+      return "#ea580c";
+    case "Personal Care & Hygiene":
+      return "#0d9488";
+    case "Baby & Mother Care":
+      return "#9333ea";
+    case "First Aid":
+      return "#dc2626";
+    case "Healthcare & Wellness":
+      return "#ca8a04";
     default:
       return "#64748b";
   }
@@ -200,16 +214,19 @@ export default function ProductPage() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
-    const [order, setOrder] = useState<"asc" | "desc">("desc");
+  const [order, setOrder] = useState<"asc" | "desc">("desc");
 
   const [orderBy, setOrderBy] = useState("createdAt");
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const [alert, setAlert] = useState<{ type: AlertColor; message: string } | null>(null);
+  const [alert, setAlert] = useState<{
+    type: AlertColor;
+    message: string;
+  } | null>(null);
 
-  const showAlert = (type: AlertState['type'], message: string) => {
+  const showAlert = (type: AlertState["type"], message: string) => {
     setAlert({ type, message });
   };
 
@@ -219,17 +236,16 @@ export default function ProductPage() {
   const filteredProducts = useMemo(() => {
     const result = products.filter((p) => {
       const keyword = search.toLowerCase();
-      const searchMatch = [
-        p.name,
-        p.sku,
-        p.category,
-        p.description,
-      ].some((value) => String(value || "").toLowerCase().includes(keyword));
+      const searchMatch = [p.name, p.generic, p.category, p.description].some(
+        (value) =>
+          String(value || "")
+            .toLowerCase()
+            .includes(keyword),
+      );
 
       const categoryMatch =
         categoryFilter === "all" || p.category === categoryFilter;
-      const statusMatch =
-        statusFilter === "all" || p.status === statusFilter;
+      const statusMatch = statusFilter === "all" || p.status === statusFilter;
 
       return searchMatch && categoryMatch && statusMatch;
     });
@@ -239,7 +255,7 @@ export default function ProductPage() {
 
   const paginatedProducts = filteredProducts.slice(
     page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
+    page * rowsPerPage + rowsPerPage,
   );
 
   // ==========================================
@@ -273,7 +289,7 @@ export default function ProductPage() {
   };
 
   const handleSave = () => {
-    const requiredFields = ["name", "sku", "price", "stock"];
+    const requiredFields = ["name", "generic ", "price", "stock"];
     if (requiredFields.some((key) => String(form[key] ?? "").trim() === "")) {
       return showAlert("error", "Please fill all required fields.");
     }
@@ -288,12 +304,16 @@ export default function ProductPage() {
 
     const stockNum = Number(form.stock);
     const computedStatus =
-      stockNum === 0 ? "Out of Stock" : stockNum <= 20 ? "Low Stock" : "In Stock";
+      stockNum === 0
+        ? "Out of Stock"
+        : stockNum <= 20
+          ? "Low Stock"
+          : "In Stock";
 
     const productData = {
       ...form,
       name: form.name.trim(),
-      sku: form.sku.trim().toUpperCase(),
+      generic: form.generic.trim().toUpperCase(),
       price: Number(form.price),
       stock: stockNum,
       status: computedStatus,
@@ -302,7 +322,7 @@ export default function ProductPage() {
 
     if (editingId !== null) {
       setProducts((prev) =>
-        prev.map((p) => (p.id === editingId ? { ...p, ...productData } : p))
+        prev.map((p) => (p.id === editingId ? { ...p, ...productData } : p)),
       );
       showAlert("success", "Product updated successfully!");
     } else {
@@ -317,7 +337,8 @@ export default function ProductPage() {
   };
 
   const handleDelete = (id) => {
-    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    if (!window.confirm("Are you sure you want to delete this product?"))
+      return;
     setProducts((prev) => prev.filter((p) => p.id !== id));
     setPage(0);
     showAlert("success", "Product deleted successfully!");
@@ -337,7 +358,7 @@ export default function ProductPage() {
   // ==========================================
   const columns = [
     { id: "name", label: "Product" },
-    { id: "sku", label: "SKU" },
+    { id: "generic", label: "Generic" },
     { id: "category", label: "Category" },
     { id: "price", label: "Price" },
     { id: "stock", label: "Stock" },
@@ -356,14 +377,9 @@ export default function ProductPage() {
         boxSizing: "border-box",
       }}
     >
-    
-{alert && (
-  <Alert
-    key={alert.message}
-    type={alert.type}
-    message={alert.message}
-  />
-)}
+      {alert && (
+        <Alert key={alert.message} type={alert.type} message={alert.message} />
+      )}
 
       {/* HEADER */}
       <Stack
@@ -463,11 +479,11 @@ export default function ProductPage() {
             <TextField
               fullWidth
               size="small"
-              label="SKU *"
-              name="sku"
-              value={form.sku}
+              label="Generic *"
+              name="generic"
+              value={form.generic}
               onChange={handleChange}
-              placeholder="e.g. WBH-2026-001"
+              placeholder="e.g. Acetaminophen "
             />
 
             <TextField
@@ -479,11 +495,24 @@ export default function ProductPage() {
               value={form.category}
               onChange={handleChange}
             >
-              <MenuItem value="Electronics">Electronics</MenuItem>
-              <MenuItem value="Furniture">Furniture</MenuItem>
-              <MenuItem value="Home & Kitchen">Home & Kitchen</MenuItem>
-              <MenuItem value="Apparel">Apparel</MenuItem>
-              <MenuItem value="Sports">Sports</MenuItem>
+              <MenuItem value="Prescription Medicines">
+                Prescription Medicines
+              </MenuItem>
+              <MenuItem value="OTC Medicines">OTC Medicines</MenuItem>
+              <MenuItem value="Antibiotics">Antibiotics</MenuItem>
+              <MenuItem value="Vitamins & Supplements">
+                Vitamins & Supplements
+              </MenuItem>
+              <MenuItem value="Medical Devices">Medical Devices</MenuItem>
+              <MenuItem value="Surgical Supplies">Surgical Supplies</MenuItem>
+              <MenuItem value="Personal Care & Hygiene">
+                Personal Care & Hygiene
+              </MenuItem>
+              <MenuItem value="Baby & Mother Care">Baby & Mother Care</MenuItem>
+              <MenuItem value="First Aid">First Aid</MenuItem>
+              <MenuItem value="Healthcare & Wellness">
+                Healthcare & Wellness
+              </MenuItem>
               <MenuItem value="Other">Other</MenuItem>
             </TextField>
 
@@ -594,7 +623,7 @@ export default function ProductPage() {
             <TextField
               fullWidth
               size="small"
-              placeholder="Search product name, SKU, category..."
+              placeholder="Search product name, Generic, category..."
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -620,11 +649,26 @@ export default function ProductPage() {
                 }}
               >
                 <MenuItem value="all">All Categories</MenuItem>
-                <MenuItem value="Electronics">Electronics</MenuItem>
-                <MenuItem value="Furniture">Furniture</MenuItem>
-                <MenuItem value="Home & Kitchen">Home & Kitchen</MenuItem>
-                <MenuItem value="Apparel">Apparel</MenuItem>
-                <MenuItem value="Sports">Sports</MenuItem>
+                <MenuItem value="Prescription Medicines">
+                  Prescription Medicines
+                </MenuItem>
+                <MenuItem value="OTC Medicines">OTC Medicines</MenuItem>
+                <MenuItem value="Antibiotics">Antibiotics</MenuItem>
+                <MenuItem value="Vitamins & Supplements">
+                  Vitamins & Supplements
+                </MenuItem>
+                <MenuItem value="Medical Devices">Medical Devices</MenuItem>
+                <MenuItem value="Surgical Supplies">Surgical Supplies</MenuItem>
+                <MenuItem value="Personal Care & Hygiene">
+                  Personal Care & Hygiene
+                </MenuItem>
+                <MenuItem value="Baby & Mother Care">
+                  Baby & Mother Care
+                </MenuItem>
+                <MenuItem value="First Aid">First Aid</MenuItem>
+                <MenuItem value="Healthcare & Wellness">
+                  Healthcare & Wellness
+                </MenuItem>
                 <MenuItem value="Other">Other</MenuItem>
               </Select>
             </FormControl>
@@ -742,7 +786,7 @@ export default function ProductPage() {
                     <TableCell>
                       <Chip
                         size="small"
-                        label={item.sku}
+                        label={item.generic}
                         variant="outlined"
                         sx={{ fontFamily: "monospace", fontWeight: 600 }}
                       />
@@ -782,7 +826,6 @@ export default function ProductPage() {
 
                     <TableCell>
                       <Stack direction="row" spacing={0.5}>
-                        
                         <Tooltip title="Edit">
                           <IconButton
                             size="small"
@@ -812,7 +855,9 @@ export default function ProductPage() {
                       <Inventory2Outlined
                         sx={{ fontSize: 45, color: "#94a3b8", mb: 1 }}
                       />
-                      <Typography fontWeight={700}>No Products Found</Typography>
+                      <Typography fontWeight={700}>
+                        No Products Found
+                      </Typography>
                       <Typography variant="body2" color="text.secondary">
                         Try another search or filter.
                       </Typography>
@@ -899,9 +944,9 @@ export default function ProductPage() {
             <TextField
               fullWidth
               size="small"
-              label="SKU *"
-              name="sku"
-              value={form.sku}
+              label="Generic *"
+              name="generic"
+              value={form.generic}
               onChange={handleChange}
             />
 
@@ -914,11 +959,24 @@ export default function ProductPage() {
               value={form.category}
               onChange={handleChange}
             >
-              <MenuItem value="Electronics">Electronics</MenuItem>
-              <MenuItem value="Furniture">Furniture</MenuItem>
-              <MenuItem value="Home & Kitchen">Home & Kitchen</MenuItem>
-              <MenuItem value="Apparel">Apparel</MenuItem>
-              <MenuItem value="Sports">Sports</MenuItem>
+              <MenuItem value="Prescription Medicines">
+                Prescription Medicines
+              </MenuItem>
+              <MenuItem value="OTC Medicines">OTC Medicines</MenuItem>
+              <MenuItem value="Antibiotics">Antibiotics</MenuItem>
+              <MenuItem value="Vitamins & Supplements">
+                Vitamins & Supplements
+              </MenuItem>
+              <MenuItem value="Medical Devices">Medical Devices</MenuItem>
+              <MenuItem value="Surgical Supplies">Surgical Supplies</MenuItem>
+              <MenuItem value="Personal Care & Hygiene">
+                Personal Care & Hygiene
+              </MenuItem>
+              <MenuItem value="Baby & Mother Care">Baby & Mother Care</MenuItem>
+              <MenuItem value="First Aid">First Aid</MenuItem>
+              <MenuItem value="Healthcare & Wellness">
+                Healthcare & Wellness
+              </MenuItem>
               <MenuItem value="Other">Other</MenuItem>
             </TextField>
 

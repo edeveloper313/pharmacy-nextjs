@@ -15,7 +15,6 @@ import {
   IconLogin,
   IconUserPlus,
   IconAddressBook,
-  
 } from "@tabler/icons-react";
 
 import { uniqueId } from "lodash";
@@ -36,7 +35,7 @@ const Menuitems = [
     icon: IconUserCircle,
     href: "/dashboard/profile",
   },
- 
+
   {
     id: uniqueId(),
     title: "Product",
@@ -45,28 +44,29 @@ const Menuitems = [
   },
   {
     id: uniqueId(),
-    title: "Customer Entry",
+    title: "Customer",
     icon: IconAddressBook,
-    href: "/dashboard/customer-entry",
+    href: "/dashboard/customer",
   },
-    {
+  {
     id: uniqueId(),
-    title: "Purchase Invoice",
+    title: "Purchase Entry",
     icon: IconUserPlus,
-    href: "/dashboard/purchase-invoice",
-  },  {
+    href: "/dashboard/purchase-entry",
+  },
+  {
     id: uniqueId(),
     title: "Sale Order Entry",
     icon: IconShoppingCart,
     href: "/dashboard/sale-order-entry",
   },
-   {
+  {
     id: uniqueId(),
     title: "Sales Invoice Updating",
     icon: IconReceipt,
     href: "/dashboard/sale-invoice-updating",
   },
-   {
+  {
     id: uniqueId(),
     title: "Sales Order Status",
     icon: IconChartBar,
@@ -78,22 +78,22 @@ const Menuitems = [
     icon: IconUsers,
     href: "/dashboard/client-management",
   },
-    {
+  {
     id: uniqueId(),
     title: "Master Product Entry",
     icon: IconPackage,
     href: "/dashboard/master-product-entry",
   },
-    {
+  {
     id: uniqueId(),
     title: "Master Client Entry",
     icon: IconAddressBook,
     href: "/dashboard/master-client-entry",
   },
-   {
+  {
     id: uniqueId(),
-    title: "Sale Invoice listing" ,
-    icon:IconFileInvoice ,
+    title: "Sale Invoice listing",
+    icon: IconFileInvoice,
     href: "/dashboard/sales-invoice-listing",
   },
   // {
@@ -138,10 +138,6 @@ const Menuitems = [
   //   icon: IconShieldLock,
   //   href: "/dashboard/security",
   // },
-
-  
 ];
 
 export default Menuitems;
-
-
