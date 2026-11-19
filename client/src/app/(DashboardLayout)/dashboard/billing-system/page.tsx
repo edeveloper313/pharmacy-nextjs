@@ -175,11 +175,13 @@ export default function BillingSystemPage() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-   const [alert, setAlert] = useState<{ type: AlertColor; message: string } | null>(null);
+ const [alert, setAlert] = useState<
+  { id: number; type: AlertColor; message: string } | null
+>(null);
 
-  const showAlert = (type: AlertState['type'], message: string) => {
-    setAlert({ type, message });
-  };
+const showAlert = (type: AlertColor, message: string) => {
+  setAlert({ id: Date.now(), type, message });
+};
 
   // Calculate grand total dynamically in the form
   const calculatedGrandTotal = useMemo(() => {
@@ -340,8 +342,9 @@ export default function BillingSystemPage() {
     >
 
 {alert && (
-  <Alert
-    key={alert.message}
+   <Alert
+    key={alert.id}          
+    id={alert.id}           
     type={alert.type}
     message={alert.message}
   />

@@ -204,7 +204,13 @@ export default function SettingsPage() {
 
   const [settings, setSettings] = useState(initialSettings);
 
-  const [alert, setAlert] = useState<{ type: AlertColor; message: string } | null>(null);
+  const [alert, setAlert] = useState<
+  { id: number; type: AlertColor; message: string } | null
+>(null);
+
+const showAlert = (type: AlertColor, message: string) => {
+  setAlert({ id: Date.now(), type, message });
+};
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
 
@@ -315,7 +321,8 @@ const inputProps = {
 
     {alert && (
   <Alert
-    key={alert.message}
+    key={alert.id}          
+    id={alert.id}           
     type={alert.type}
     message={alert.message}
   />

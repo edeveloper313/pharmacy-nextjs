@@ -62,12 +62,11 @@ const createEmptyForm = (): CustomerForm => ({
   ntn: "",
   strn: "",
   whatsappnumber: "",
-
   htPerson: "",
   salesRepresentative: "",
   creditDays: "",
   creditLimit: "",
-  status: "",
+  status: "Active", // default Active
 });
 const customerTypes: CustomerType[] = [
   "Clinic",
@@ -166,24 +165,24 @@ export default function CustomerEntryPage() {
 
   const handleSave = () => {
     const requiredFields: (keyof CustomerForm)[] = [
-  "customerType",
-  "purchaserName",
-  "whatsappnumber",
-  "city",
-  "address",
-  "htPerson",
-  "creditDays",
-  "status"
-];
+      "customerType",
+      "purchaserName",
+      "whatsappnumber",
+      "city",
+      "address",
+      "htPerson",
+      "creditDays",
+      "status",
+    ];
 
-const missingFields = requiredFields.filter(
-  (key) => !String(form[key] ?? "").trim()
-);
+    const missingFields = requiredFields.filter(
+      (key) => !String(form[key] ?? "").trim(),
+    );
 
-if (missingFields.length > 0) {
-  showAlert("error", `Please fill: ${missingFields.join(", ")}`);
-  return;
-}
+    if (missingFields.length > 0) {
+      showAlert("error", `Please fill: ${missingFields.join(", ")}`);
+      return;
+    }
 
     // Accept Pakistani mobile numbers with optional spaces or hyphens.
     const normalizedPhone = form.whatsappnumber.replace(/[\s-]/g, "");
@@ -204,14 +203,8 @@ if (missingFields.length > 0) {
       return;
     }
 
-    // Demo only: connect this handler to your API/database to persist records.
-    console.log("Customer Data:", {
-      ...form,
-      creditDays: Number(form.creditDays),
-      creditLimit:
-        form.creditLimit.trim() === "" ? null : Number(form.creditLimit),
-    });
-    showAlert("success", "Customer details validated successfully. (Demo)");
+    setForm(createEmptyForm());
+    showAlert("success", "Customer details validated successfully.");
   };
   const getRegistrationLabel = () => {
     switch (form.customerType) {
@@ -349,6 +342,7 @@ if (missingFields.length > 0) {
                   value={form.whatsappnumber}
                   onChange={handleChange}
                   placeholder="030XXXXXXX"
+                  inputProps={{ maxLength: 11 }}
                   sx={{ ...fieldSx, gridColumn: "1 / -1" }}
                 />
                 <TextField
@@ -511,7 +505,6 @@ if (missingFields.length > 0) {
                   onChange={handleChange}
                   sx={{ ...fieldSx, gridColumn: "1 / -1" }}
                 >
-                  <MenuItem value="">Select customer status</MenuItem>
                   <MenuItem value="Active">Active</MenuItem>
                   <MenuItem value="Inactive">Inactive</MenuItem>
                   <MenuItem value="Blocked">Blocked</MenuItem>

@@ -150,11 +150,13 @@ export default function InvoiceExportPage() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-   const [alert, setAlert] = useState<{ type: AlertColor; message: string } | null>(null);
+const [alert, setAlert] = useState<
+  { id: number; type: AlertColor; message: string } | null
+>(null);
 
-  const showAlert = (type: AlertState['type'], message: string) => {
-    setAlert({ type, message });
-  };
+const showAlert = (type: AlertColor, message: string) => {
+  setAlert({ id: Date.now(), type, message });
+};
 
   // ==========================================
   // FILTERING & SORTING
@@ -285,7 +287,8 @@ export default function InvoiceExportPage() {
       
 {alert && (
   <Alert
-    key={alert.message}
+    key={alert.id}          
+    id={alert.id}           
     type={alert.type}
     message={alert.message}
   />

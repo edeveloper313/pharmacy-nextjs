@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
@@ -7,18 +6,17 @@ import { Alert as MuiAlert, AlertColor } from "@mui/material";
 interface AlertProps {
   message: string;
   type: AlertColor;
+  /** Unique trigger id — har naye alert par badlo (e.g. Date.now()). */
+  id?: number | string;
 }
 
-const Alert = ({ message, type }: AlertProps) => {
+const Alert = ({ message, type, id }: AlertProps) => {
   const [show, setShow] = useState(true);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const startTimer = () => {
     if (timerRef.current) clearTimeout(timerRef.current);
-
-    timerRef.current = setTimeout(() => {
-      setShow(false);
-    }, 3000);
+    timerRef.current = setTimeout(() => setShow(false), 3000);
   };
 
   const pauseTimer = () => {
@@ -31,9 +29,10 @@ const Alert = ({ message, type }: AlertProps) => {
   useEffect(() => {
     setShow(true);
     startTimer();
-
     return () => pauseTimer();
-  }, [message, type]);
+    // id ko dependency mein daalna zaroori hai — warna same
+    // message + type par effect dobara nahi chalega.
+  }, [message, type, id]);
 
   if (!show) return null;
 

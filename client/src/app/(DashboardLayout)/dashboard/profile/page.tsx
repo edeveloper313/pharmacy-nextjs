@@ -44,7 +44,13 @@ export default function ProfilePage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
 
-  const [alert, setAlert] = useState<{ type: AlertColor; message: string } | null>(null);
+const [alert, setAlert] = useState<
+  { id: number; type: AlertColor; message: string } | null
+>(null);
+
+const showAlert = (type: AlertColor, message: string) => {
+  setAlert({ id: Date.now(), type, message });
+};
   const formRef = useRef<HTMLFormElement>(null);
 
   // Profile Image Upload
@@ -114,7 +120,8 @@ export default function ProfilePage() {
 
 {alert && (
   <Alert
-    key={alert.message}
+    key={alert.id}          
+    id={alert.id}           
     type={alert.type}
     message={alert.message}
   />
