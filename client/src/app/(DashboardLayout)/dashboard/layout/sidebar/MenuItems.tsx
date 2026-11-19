@@ -40,7 +40,7 @@ const Menuitems = [
     id: uniqueId(),
     title: "Product",
     icon: IconPackage,
-    href: "/dashboard/product",
+    href: "/dashboard/product-order",
   },
   {
     id: uniqueId(),
