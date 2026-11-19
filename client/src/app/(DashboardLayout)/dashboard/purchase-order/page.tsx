@@ -235,7 +235,13 @@ function Section({ icon, title, subtitle, children }: SectionProps) {
     </Box>
   );
 }
-
+const batchOptions = [
+  { batchNumber: "BATCH-001" },
+  { batchNumber: "BATCH-002" },
+  { batchNumber: "BATCH-003" },
+  { batchNumber: "BATCH-004" },
+  { batchNumber: "BATCH-005" },
+];
 const money = (value: number) =>
   new Intl.NumberFormat("en-PK", {
     style: "currency",
@@ -462,8 +468,8 @@ export default function PurchaseInvoicePage() {
             Purchase Invoice
           </Typography>
           <Typography variant="body2" color="text.secondary" mt={0.5}>
-            Record supplier purchases, review purchase history and manage
-            payments.
+            Create supplier purchase invoices, add product details and manage
+            purchase payments.
           </Typography>
         </Box>
         <Box
@@ -497,8 +503,8 @@ export default function PurchaseInvoicePage() {
           <Stack spacing={3.5}>
             <Section
               icon={<BusinessOutlined />}
-              title="Supplier & Invoice Information"
-              subtitle="Search for a supplier and enter the supplier invoice details."
+              title="Purchase invoice"
+              subtitle="Select a supplier and enter invoice details, products, quantities and payment information."
             >
               <Box sx={gridSx}>
                 <Autocomplete
@@ -633,17 +639,62 @@ export default function PurchaseInvoicePage() {
                   placeholder="Search or enter product name"
                   sx={fieldSx}
                 />
-                <TextField
+
+                <Autocomplete
                   fullWidth
-                  required
                   size="small"
-                  label="Batch Number"
-                  name="batchNumber"
-                  value={form.batchNumber}
-                  onChange={handleChange}
-                  placeholder="Enter batch / lot number"
-                  sx={fieldSx}
+                  options={batchOptions}
+                  freeSolo
+                  value={
+                    batchOptions.find(
+                      (item) => item.batchNumber === form.batchNumber,
+                    ) ||
+                    (form.batchNumber
+                      ? {
+                          batchNumber: form.batchNumber,
+                        }
+                      : null)
+                  }
+                  getOptionLabel={(option) =>
+                    typeof option === "string" ? option : option.batchNumber
+                  }
+                  onChange={(_, newValue) => {
+                    setForm((prev) => ({
+                      ...prev,
+                      batchNumber:
+                        typeof newValue === "string"
+                          ? newValue
+                          : newValue?.batchNumber || "",
+                    }));
+                  }}
+                  onInputChange={(_, newInputValue, reason) => {
+                    if (reason === "input") {
+                      setForm((prev) => ({
+                        ...prev,
+                        batchNumber: newInputValue,
+                      }));
+                    }
+                  }}
+                  renderOption={(props, option) => (
+                    <li {...props} key={option.batchNumber}>
+                      <div className="flex w-full flex-col py-1">
+                        <span className="font-semibold text-slate-800">
+                          {option.batchNumber}
+                        </span>
+                      </div>
+                    </li>
+                  )}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      required
+                      label="Batch Number"
+                      placeholder="Select or enter batch number"
+                      sx={fieldSx}
+                    />
+                  )}
                 />
+
                 <TextField
                   fullWidth
                   required
@@ -818,8 +869,8 @@ export default function PurchaseInvoicePage() {
 
             <Section
               icon={<HistoryOutlined />}
-              title="Supplier Previous Purchase History"
-              subtitle="Review what was previously purchased from this supplier before ordering again."
+              title="Purchase Previous History"
+              subtitle="Review previous purchases, product quantities and purchase rates from this supplier."
             >
               {!selectedSupplier ? (
                 <MuiAlert severity="info">
