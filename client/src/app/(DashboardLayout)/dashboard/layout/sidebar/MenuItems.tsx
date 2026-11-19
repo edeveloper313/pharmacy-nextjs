@@ -92,7 +92,7 @@ const Menuitems = [
   },
    {
     id: uniqueId(),
-    title: "Sale Invoice listing",
+    title: "Sale Invoice listing" ,
     icon:IconFileInvoice ,
     href: "/dashboard/sales-invoice-listing",
   },
