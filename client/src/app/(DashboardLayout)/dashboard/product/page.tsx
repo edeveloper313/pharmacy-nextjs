@@ -289,7 +289,7 @@ export default function ProductPage() {
   };
 
   const handleSave = () => {
-    const requiredFields = ["name", "generic ", "price", "stock"];
+    const requiredFields = ["name", "price", "stock"];
     if (requiredFields.some((key) => String(form[key] ?? "").trim() === "")) {
       return showAlert("error", "Please fill all required fields.");
     }
@@ -301,7 +301,10 @@ export default function ProductPage() {
     if (Number(form.stock) < 0) {
       return showAlert("error", "Stock cannot be negative.");
     }
-
+if (Number(form.stock) <= 0) {
+  return showAlert("warning", "Stock must be greater than 0.");
+}
+    
     const stockNum = Number(form.stock);
     const computedStatus =
       stockNum === 0
@@ -313,7 +316,7 @@ export default function ProductPage() {
     const productData = {
       ...form,
       name: form.name.trim(),
-      generic: form.generic.trim().toUpperCase(),
+      generic: form.generic.trim().toUpperCase() || "No Generic Name",
       price: Number(form.price),
       stock: stockNum,
       status: computedStatus,
@@ -398,22 +401,7 @@ export default function ProductPage() {
           </Typography>
         </Box>
 
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleAdd}
-          sx={{
-            bgcolor: "#2563eb",
-            borderRadius: 2,
-            textTransform: "none",
-            boxShadow: "none",
-            px: 2.5,
-            whiteSpace: "nowrap",
-            width: { xs: "100%", sm: "auto" },
-          }}
-        >
-          Add Product
-        </Button>
+   
       </Stack>
 
       {/* PRODUCT ENTRY FORM */}
@@ -479,11 +467,11 @@ export default function ProductPage() {
             <TextField
               fullWidth
               size="small"
-              label="Generic *"
+              label="Generic"
               name="generic"
               value={form.generic}
               onChange={handleChange}
-              placeholder="e.g. Acetaminophen "
+              placeholder="Acetaminophen "
             />
 
             <TextField
@@ -944,7 +932,7 @@ export default function ProductPage() {
             <TextField
               fullWidth
               size="small"
-              label="Generic *"
+              label="Generic"
               name="generic"
               value={form.generic}
               onChange={handleChange}

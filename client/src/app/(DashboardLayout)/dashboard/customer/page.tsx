@@ -37,14 +37,13 @@ type CustomerType =
 
 type CustomerForm = {
   customerType: CustomerType | "";
-  customerName: string;
+  purchaserName: string;
   city: string;
   area: string;
   address: string;
   registrationNumber: string;
   ntn: string;
   strn: string;
-  purchaserName: string;
   whatsappnumber: string;
   htPerson: string;
   salesRepresentative: string;
@@ -55,14 +54,13 @@ type CustomerForm = {
 
 const createEmptyForm = (): CustomerForm => ({
   customerType: "",
-  customerName: "",
+  purchaserName: "",
   city: "",
   area: "",
   address: "",
   registrationNumber: "",
   ntn: "",
   strn: "",
-  purchaserName: "",
   whatsappnumber: "",
 
   htPerson: "",
@@ -168,19 +166,24 @@ export default function CustomerEntryPage() {
 
   const handleSave = () => {
     const requiredFields: (keyof CustomerForm)[] = [
-      "customerType",
-      "city",
-      "address",
-      "purchaserName",
-      "whatsappnumber",
-      "htPerson",
-      "creditDays",
-    ];
+  "customerType",
+  "purchaserName",
+  "whatsappnumber",
+  "city",
+  "address",
+  "htPerson",
+  "creditDays",
+  "status"
+];
 
-    if (requiredFields.some((key) => !String(form[key]).trim())) {
-      showAlert("error", "Please fill all required fields.");
-      return;
-    }
+const missingFields = requiredFields.filter(
+  (key) => !String(form[key] ?? "").trim()
+);
+
+if (missingFields.length > 0) {
+  showAlert("error", `Please fill: ${missingFields.join(", ")}`);
+  return;
+}
 
     // Accept Pakistani mobile numbers with optional spaces or hyphens.
     const normalizedPhone = form.whatsappnumber.replace(/[\s-]/g, "");
@@ -331,8 +334,8 @@ export default function CustomerEntryPage() {
                   required
                   size="small"
                   label="Customer / Business Name"
-                  name="customerName"
-                  value={form.customerName}
+                  name="purchaserName"
+                  value={form.purchaserName}
                   onChange={handleChange}
                   placeholder="e.g. City Medical Store"
                   sx={{ ...fieldSx, gridColumn: "1 / -1" }}

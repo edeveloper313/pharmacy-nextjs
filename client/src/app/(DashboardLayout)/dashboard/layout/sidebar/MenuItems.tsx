@@ -50,9 +50,9 @@ const Menuitems = [
   },
   {
     id: uniqueId(),
-    title: "Purchase Entry",
+    title: "Purchase Order",
     icon: IconUserPlus,
-    href: "/dashboard/purchase-entry",
+    href: "/dashboard/purchase-order",
   },
   {
     id: uniqueId(),
@@ -92,9 +92,9 @@ const Menuitems = [
   },
   {
     id: uniqueId(),
-    title: "Sale Invoice listing",
+    title: "Ledger",
     icon: IconFileInvoice,
-    href: "/dashboard/sales-invoice-listing",
+    href: "/dashboard/ledger",
   },
   // {
   //   id: uniqueId(),

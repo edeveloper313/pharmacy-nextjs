@@ -37,11 +37,11 @@ import Alert from "@/app/components/Alert";
    ========================================================================= */
 
 type CustomerType =
-  | "Hospital"
   | "Clinic"
+  | "Doctor"
+  | "Hospital"
   | "Pharmacy / Medical Store"
-  | "Wholesale Distributor"
-  | "Doctor";
+  | "Wholesale Distributor";
 
 type InvoiceStatus = "Paid" | "Partial" | "Unpaid" | "Cancelled";
 

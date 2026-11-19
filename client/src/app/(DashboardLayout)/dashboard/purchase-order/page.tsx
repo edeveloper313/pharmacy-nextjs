@@ -9,6 +9,11 @@ import {
   Button,
   Card,
   CardContent,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
   MenuItem,
   Stack,
@@ -27,12 +32,14 @@ import {
   AccountBalanceWalletOutlined,
   AddOutlined,
   BusinessOutlined,
+  Close,
   DeleteOutline,
   HistoryOutlined,
   Inventory2Outlined,
   ReceiptLongOutlined,
   RestartAltOutlined,
   SaveOutlined,
+  VisibilityOutlined,
 } from "@mui/icons-material";
 import Alert from "@/app/components/Alert";
 
@@ -44,15 +51,28 @@ type Supplier = {
   phone: string;
 };
 
-type PurchaseHistoryRecord = {
-  invoiceNo: string;
-  date: string;
+type PurchaseHistoryProduct = {
   productName: string;
   batchNumber: string;
   expiryDate: string;
   quantity: number;
   unit: string;
   purchaseRate: number;
+  discount: number;
+  taxPercent: number;
+  taxAmount: number;
+  subTotal: number;
+  grandTotal: number;
+};
+
+type PurchaseHistoryInvoice = {
+  invoiceNo: string;
+  date: string;
+  dueDate?: string;
+  paymentType: string;
+  paidAmount: number;
+  grandTotal: number;
+  products: PurchaseHistoryProduct[];
 };
 
 type InvoiceItem = {
@@ -135,49 +155,114 @@ const suppliers: Supplier[] = [
   },
 ];
 
-const supplierHistory: Record<string, PurchaseHistoryRecord[]> = {
+const supplierHistory: Record<string, PurchaseHistoryInvoice[]> = {
   "SUP-001": [
     {
       invoiceNo: "SUP-INV-1042",
       date: "2026-10-28",
-      productName: "Paracetamol 500mg",
-      batchNumber: "PCM-25A",
-      expiryDate: "2027-12-31",
-      quantity: 500,
-      unit: "Box",
-      purchaseRate: 420,
+      dueDate: "2026-11-27",
+      paymentType: "Credit",
+      paidAmount: 200000,
+      grandTotal: 346000,
+      products: [
+        {
+          productName: "Paracetamol 500mg",
+          batchNumber: "PCM-25A",
+          expiryDate: "2027-12-31",
+          quantity: 500,
+          unit: "Box",
+          purchaseRate: 420,
+          discount: 0,
+          taxPercent: 0,
+          taxAmount: 0,
+          subTotal: 210000,
+          grandTotal: 210000,
+        },
+        {
+          productName: "Amoxicillin 500mg",
+          batchNumber: "AMX-25A",
+          expiryDate: "2027-08-31",
+          quantity: 200,
+          unit: "Pack",
+          purchaseRate: 680,
+          discount: 0,
+          taxPercent: 0,
+          taxAmount: 0,
+          subTotal: 136000,
+          grandTotal: 136000,
+        },
+      ],
     },
     {
       invoiceNo: "SUP-INV-0998",
       date: "2026-09-12",
-      productName: "Amoxicillin 500mg",
-      batchNumber: "AMX-24B",
-      expiryDate: "2027-08-31",
-      quantity: 200,
-      unit: "Pack",
-      purchaseRate: 680,
+      dueDate: "2026-10-12",
+      paymentType: "Bank Transfer",
+      paidAmount: 136000,
+      grandTotal: 136000,
+      products: [
+        {
+          productName: "Amoxicillin 500mg",
+          batchNumber: "AMX-24B",
+          expiryDate: "2027-08-31",
+          quantity: 200,
+          unit: "Pack",
+          purchaseRate: 680,
+          discount: 0,
+          taxPercent: 0,
+          taxAmount: 0,
+          subTotal: 136000,
+          grandTotal: 136000,
+        },
+      ],
     },
     {
       invoiceNo: "SUP-INV-0941",
       date: "2026-08-04",
-      productName: "Paracetamol 500mg",
-      batchNumber: "PCM-24C",
-      expiryDate: "2027-05-31",
-      quantity: 300,
-      unit: "Box",
-      purchaseRate: 410,
+      dueDate: "2026-09-03",
+      paymentType: "Credit",
+      paidAmount: 0,
+      grandTotal: 123000,
+      products: [
+        {
+          productName: "Paracetamol 500mg",
+          batchNumber: "PCM-24C",
+          expiryDate: "2027-05-31",
+          quantity: 300,
+          unit: "Box",
+          purchaseRate: 410,
+          discount: 0,
+          taxPercent: 0,
+          taxAmount: 0,
+          subTotal: 123000,
+          grandTotal: 123000,
+        },
+      ],
     },
   ],
   "SUP-002": [
     {
       invoiceNo: "PPS-7781",
       date: "2026-10-17",
-      productName: "Normal Saline 500ml",
-      batchNumber: "NS-610",
-      expiryDate: "2028-02-28",
-      quantity: 150,
-      unit: "Bottle",
-      purchaseRate: 95,
+      dueDate: "2026-11-16",
+      paymentType: "Cash",
+      paidAmount: 14250,
+      grandTotal: 14250,
+      products: [
+        {
+          productName: "Normal Saline 500ml",
+          batchNumber: "NS-610",
+          expiryDate: "2028-02-28",
+          quantity: 150,
+          unit: "Bottle",
+          purchaseRate: 95,
+          discount: 0,
+          taxPercent: 0,
+          taxAmount: 0,
+          subTotal: 14250,
+          grandTotal: 14250,
+        },
+      ],
     },
   ],
   "SUP-003": [],
@@ -235,7 +320,13 @@ function Section({ icon, title, subtitle, children }: SectionProps) {
     </Box>
   );
 }
-
+const batchOptions = [
+  { batchNumber: "BATCH-001" },
+  { batchNumber: "BATCH-002" },
+  { batchNumber: "BATCH-003" },
+  { batchNumber: "BATCH-004" },
+  { batchNumber: "BATCH-005" },
+];
 const money = (value: number) =>
   new Intl.NumberFormat("en-PK", {
     style: "currency",
@@ -243,12 +334,31 @@ const money = (value: number) =>
     maximumFractionDigits: 2,
   }).format(value || 0);
 
+const getInvoiceStatus = (
+  invoice: PurchaseHistoryInvoice,
+): "Pending" | "Partial" | "Paid" => {
+  if (invoice.paidAmount >= invoice.grandTotal) return "Paid";
+  if (invoice.paidAmount > 0) return "Partial";
+  return "Pending";
+};
+
+const statusChipColor = (
+  status: "Pending" | "Partial" | "Paid",
+): "success" | "warning" | "error" => {
+  if (status === "Paid") return "success";
+  if (status === "Partial") return "warning";
+  return "error";
+};
+
 export default function PurchaseInvoicePage() {
   const [form, setForm] = useState<FormState>({ ...emptyForm });
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(
     null,
   );
   const [items, setItems] = useState<InvoiceItem[]>([]);
+  const [viewInvoice, setViewInvoice] = useState<PurchaseHistoryInvoice | null>(
+    null,
+  );
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -269,14 +379,27 @@ export default function PurchaseInvoicePage() {
   );
   const matchingHistory = useMemo(() => {
     const query = form.productName.trim().toLocaleLowerCase();
-    return query
-      ? history.filter((record) =>
-          record.productName.toLocaleLowerCase().includes(query),
-        )
-      : [];
+    if (!query) return [];
+    const matched: {
+      invoiceNo: string;
+      date: string;
+      product: PurchaseHistoryProduct;
+    }[] = [];
+    for (const invoice of history) {
+      for (const product of invoice.products) {
+        if (product.productName.toLocaleLowerCase().includes(query)) {
+          matched.push({
+            invoiceNo: invoice.invoiceNo,
+            date: invoice.date,
+            product,
+          });
+        }
+      }
+    }
+    return matched;
   }, [form.productName, history]);
   const previousProductQty = matchingHistory.reduce(
-    (sum, record) => sum + record.quantity,
+    (sum, record) => sum + record.product.quantity,
     0,
   );
 
@@ -440,6 +563,11 @@ export default function PurchaseInvoicePage() {
     showMessage("success", "Purchase invoice saved successfully");
   };
 
+  const viewInvoiceStatus = viewInvoice ? getInvoiceStatus(viewInvoice) : null;
+  const viewInvoiceRemaining = viewInvoice
+    ? Math.max(0, viewInvoice.grandTotal - viewInvoice.paidAmount)
+    : 0;
+
   return (
     <Box
       sx={{
@@ -462,8 +590,8 @@ export default function PurchaseInvoicePage() {
             Purchase Invoice
           </Typography>
           <Typography variant="body2" color="text.secondary" mt={0.5}>
-            Record supplier purchases, review purchase history and manage
-            payments.
+            Create supplier purchase invoices, add product details and manage
+            purchase payments.
           </Typography>
         </Box>
         <Box
@@ -497,8 +625,8 @@ export default function PurchaseInvoicePage() {
           <Stack spacing={3.5}>
             <Section
               icon={<BusinessOutlined />}
-              title="Supplier & Invoice Information"
-              subtitle="Search for a supplier and enter the supplier invoice details."
+              title="Purchase invoice"
+              subtitle="Select a supplier and enter invoice details, products, quantities and payment information."
             >
               <Box sx={gridSx}>
                 <Autocomplete
@@ -633,17 +761,62 @@ export default function PurchaseInvoicePage() {
                   placeholder="Search or enter product name"
                   sx={fieldSx}
                 />
-                <TextField
+
+                <Autocomplete
                   fullWidth
-                  required
                   size="small"
-                  label="Batch Number"
-                  name="batchNumber"
-                  value={form.batchNumber}
-                  onChange={handleChange}
-                  placeholder="Enter batch / lot number"
-                  sx={fieldSx}
+                  options={batchOptions}
+                  freeSolo
+                  value={
+                    batchOptions.find(
+                      (item) => item.batchNumber === form.batchNumber,
+                    ) ||
+                    (form.batchNumber
+                      ? {
+                          batchNumber: form.batchNumber,
+                        }
+                      : null)
+                  }
+                  getOptionLabel={(option) =>
+                    typeof option === "string" ? option : option.batchNumber
+                  }
+                  onChange={(_, newValue) => {
+                    setForm((prev) => ({
+                      ...prev,
+                      batchNumber:
+                        typeof newValue === "string"
+                          ? newValue
+                          : newValue?.batchNumber || "",
+                    }));
+                  }}
+                  onInputChange={(_, newInputValue, reason) => {
+                    if (reason === "input") {
+                      setForm((prev) => ({
+                        ...prev,
+                        batchNumber: newInputValue,
+                      }));
+                    }
+                  }}
+                  renderOption={(props, option) => (
+                    <li {...props} key={option.batchNumber}>
+                      <div className="flex w-full flex-col py-1">
+                        <span className="font-semibold text-slate-800">
+                          {option.batchNumber}
+                        </span>
+                      </div>
+                    </li>
+                  )}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      required
+                      label="Batch Number"
+                      placeholder="Select or enter batch number"
+                      sx={fieldSx}
+                    />
+                  )}
                 />
+
                 <TextField
                   fullWidth
                   required
@@ -818,12 +991,12 @@ export default function PurchaseInvoicePage() {
 
             <Section
               icon={<HistoryOutlined />}
-              title="Supplier Previous Purchase History"
-              subtitle="Review what was previously purchased from this supplier before ordering again."
+              title="Purchase Previous History"
+              subtitle="Review previous purchase invoices from this supplier and open an invoice to view complete details."
             >
               {!selectedSupplier ? (
                 <MuiAlert severity="info">
-                  Select a supplier to view their previous purchase records.
+                  Select a supplier to view their previous purchase invoices.
                 </MuiAlert>
               ) : history.length === 0 ? (
                 <MuiAlert severity="info">
@@ -842,7 +1015,7 @@ export default function PurchaseInvoicePage() {
                       {selectedSupplier.name}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {history.length} previous record(s)
+                      {history.length} previous invoice(s)
                     </Typography>
                   </Stack>
                   <TableContainer
@@ -859,12 +1032,11 @@ export default function PurchaseInvoicePage() {
                           {[
                             "Invoice No.",
                             "Date",
-                            "Product Name",
-                            "Batch No.",
-                            "Expiry",
-                            "Qty",
-                            "Unit",
-                            "Purchase Rate",
+                            "Items",
+                            "Grand Total",
+                            "Paid",
+                            "Status",
+                            "Action",
                           ].map((heading) => (
                             <TableCell
                               key={heading}
@@ -881,45 +1053,66 @@ export default function PurchaseInvoicePage() {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {history.map((record) => (
-                          <TableRow
-                            key={`${record.invoiceNo}-${record.batchNumber}`}
-                            hover
-                          >
-                            <TableCell
-                              sx={{ fontSize: 12, whiteSpace: "nowrap" }}
-                            >
-                              {record.invoiceNo}
-                            </TableCell>
-                            <TableCell
-                              sx={{ fontSize: 12, whiteSpace: "nowrap" }}
-                            >
-                              {record.date}
-                            </TableCell>
-                            <TableCell sx={{ fontSize: 12, minWidth: 160 }}>
-                              {record.productName}
-                            </TableCell>
-                            <TableCell sx={{ fontSize: 12 }}>
-                              {record.batchNumber}
-                            </TableCell>
-                            <TableCell
-                              sx={{ fontSize: 12, whiteSpace: "nowrap" }}
-                            >
-                              {record.expiryDate}
-                            </TableCell>
-                            <TableCell sx={{ fontSize: 12 }}>
-                              {record.quantity}
-                            </TableCell>
-                            <TableCell sx={{ fontSize: 12 }}>
-                              {record.unit}
-                            </TableCell>
-                            <TableCell
-                              sx={{ fontSize: 12, whiteSpace: "nowrap" }}
-                            >
-                              {money(record.purchaseRate)}
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                        {history.map((invoice) => {
+                          const status = getInvoiceStatus(invoice);
+                          return (
+                            <TableRow key={invoice.invoiceNo} hover>
+                              <TableCell
+                                sx={{ fontSize: 12, whiteSpace: "nowrap" }}
+                              >
+                                {invoice.invoiceNo}
+                              </TableCell>
+                              <TableCell
+                                sx={{ fontSize: 12, whiteSpace: "nowrap" }}
+                              >
+                                {invoice.date}
+                              </TableCell>
+                              <TableCell sx={{ fontSize: 12 }}>
+                                {invoice.products.length} item(s)
+                              </TableCell>
+                              <TableCell
+                                sx={{ fontSize: 12, whiteSpace: "nowrap" }}
+                              >
+                                {money(invoice.grandTotal)}
+                              </TableCell>
+                              <TableCell
+                                sx={{ fontSize: 12, whiteSpace: "nowrap" }}
+                              >
+                                {money(invoice.paidAmount)}
+                              </TableCell>
+                              <TableCell sx={{ whiteSpace: "nowrap" }}>
+                                <Chip
+                                  label={status}
+                                  size="small"
+                                  color={statusChipColor(status)}
+                                  sx={{
+                                    fontWeight: 700,
+                                    fontSize: 11,
+                                    height: 22,
+                                  }}
+                                />
+                              </TableCell>
+                              <TableCell sx={{ whiteSpace: "nowrap" }}>
+                                <Button
+                                  size="small"
+                                  variant="outlined"
+                                  startIcon={
+                                    <VisibilityOutlined fontSize="small" />
+                                  }
+                                  onClick={() => setViewInvoice(invoice)}
+                                  sx={{
+                                    borderRadius: 1.5,
+                                    textTransform: "none",
+                                    minWidth: 82,
+                                    fontSize: 12,
+                                  }}
+                                >
+                                  View
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
                       </TableBody>
                     </Table>
                   </TableContainer>
@@ -1223,6 +1416,295 @@ export default function PurchaseInvoicePage() {
           </Stack>
         </CardContent>
       </Card>
+
+      {/* Previous invoice detail popup */}
+      <Dialog
+        open={!!viewInvoice}
+        onClose={() => setViewInvoice(null)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        {viewInvoice && (
+          <>
+            <DialogTitle
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 1.5,
+                pb: 1.5,
+              }}
+            >
+              <Box minWidth={0}>
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={1.5}
+                  flexWrap="wrap"
+                >
+                  <Typography fontWeight={800} fontSize={16}>
+                    Invoice {viewInvoice.invoiceNo}
+                  </Typography>
+                  {viewInvoiceStatus && (
+                    <Chip
+                      label={viewInvoiceStatus}
+                      size="small"
+                      color={statusChipColor(viewInvoiceStatus)}
+                      sx={{ fontWeight: 700, fontSize: 11, height: 22 }}
+                    />
+                  )}
+                </Stack>
+                <Typography variant="caption" color="text.secondary">
+                  {viewInvoice.date}
+                  {viewInvoice.dueDate
+                    ? ` · Due ${viewInvoice.dueDate}`
+                    : ""}
+                  {viewInvoice.paymentType
+                    ? ` · ${viewInvoice.paymentType}`
+                    : ""}
+                </Typography>
+              </Box>
+              <IconButton
+                size="small"
+                onClick={() => setViewInvoice(null)}
+                aria-label="close"
+              >
+                <Close fontSize="small" />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent dividers>
+              {selectedSupplier && (
+                <Box
+                  sx={{
+                    p: 2,
+                    mb: 2,
+                    border: "1px solid #dbeafe",
+                    bgcolor: "#f8fbff",
+                    borderRadius: 2,
+                  }}
+                >
+                  <Typography
+                    fontSize={13}
+                    fontWeight={700}
+                    color="#1e40af"
+                    mb={1}
+                  >
+                    Supplier Details
+                  </Typography>
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: {
+                        xs: "1fr",
+                        sm: "repeat(2, minmax(0, 1fr))",
+                      },
+                      gap: 1,
+                    }}
+                  >
+                    <Typography variant="body2">
+                      <b>Supplier:</b> {selectedSupplier.name}
+                    </Typography>
+                    <Typography variant="body2">
+                      <b>NTN:</b> {selectedSupplier.ntn}
+                    </Typography>
+                    <Typography variant="body2">
+                      <b>Phone:</b> {selectedSupplier.phone}
+                    </Typography>
+                    <Typography variant="body2">
+                      <b>Address:</b> {selectedSupplier.address}
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
+
+              <Typography fontWeight={700} fontSize={14} mb={1}>
+                Products ({viewInvoice.products.length})
+              </Typography>
+              <TableContainer
+                sx={{
+                  border: "1px solid #e8edf3",
+                  borderRadius: 2,
+                  overflowX: "auto",
+                }}
+              >
+                <Table size="small" sx={{ minWidth: 950 }}>
+                  <TableHead>
+                    <TableRow sx={{ bgcolor: "#f8fafc" }}>
+                      {[
+                        "Product",
+                        "Batch",
+                        "Expiry",
+                        "Qty",
+                        "Unit",
+                        "Rate",
+                        "Discount",
+                        "Sub Total",
+                        "GST",
+                        "Grand Total",
+                      ].map((heading) => (
+                        <TableCell
+                          key={heading}
+                          sx={{
+                            fontWeight: 700,
+                            color: "#475569",
+                            fontSize: 11,
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {heading}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {viewInvoice.products.map((product, index) => (
+                      <TableRow
+                        key={`${product.batchNumber}-${index}`}
+                        hover
+                      >
+                        <TableCell sx={{ fontSize: 11, minWidth: 150 }}>
+                          {product.productName}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 11 }}>
+                          {product.batchNumber}
+                        </TableCell>
+                        <TableCell
+                          sx={{ fontSize: 11, whiteSpace: "nowrap" }}
+                        >
+                          {product.expiryDate}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 11 }}>
+                          {product.quantity}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 11 }}>
+                          {product.unit}
+                        </TableCell>
+                        <TableCell
+                          sx={{ fontSize: 11, whiteSpace: "nowrap" }}
+                        >
+                          {money(product.purchaseRate)}
+                        </TableCell>
+                        <TableCell
+                          sx={{ fontSize: 11, whiteSpace: "nowrap" }}
+                        >
+                          {money(product.discount)}
+                        </TableCell>
+                        <TableCell
+                          sx={{ fontSize: 11, whiteSpace: "nowrap" }}
+                        >
+                          {money(product.subTotal)}
+                        </TableCell>
+                        <TableCell
+                          sx={{ fontSize: 11, whiteSpace: "nowrap" }}
+                        >
+                          {money(product.taxAmount)}
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 11,
+                            fontWeight: 700,
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {money(product.grandTotal)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+
+              <Box
+                sx={{
+                  mt: 2,
+                  p: 2,
+                  bgcolor: "#f8fafc",
+                  border: "1px solid #e8edf3",
+                  borderRadius: 2,
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: {
+                      xs: "1fr 1fr",
+                      sm: "repeat(3, minmax(0, 1fr))",
+                    },
+                    gap: 1.5,
+                  }}
+                >
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      Sub Total
+                    </Typography>
+                    <Typography fontWeight={700}>
+                      {money(
+                        viewInvoice.products.reduce(
+                          (sum, product) => sum + product.subTotal,
+                          0,
+                        ),
+                      )}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      GST
+                    </Typography>
+                    <Typography fontWeight={700}>
+                      {money(
+                        viewInvoice.products.reduce(
+                          (sum, product) => sum + product.taxAmount,
+                          0,
+                        ),
+                      )}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      Grand Total
+                    </Typography>
+                    <Typography fontWeight={800} color="#2563eb">
+                      {money(viewInvoice.grandTotal)}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      Paid Amount
+                    </Typography>
+                    <Typography fontWeight={700}>
+                      {money(viewInvoice.paidAmount)}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      Remaining Balance
+                    </Typography>
+                    <Typography
+                      fontWeight={800}
+                      color={
+                        viewInvoiceRemaining > 0 ? "#b45309" : "#15803d"
+                      }
+                    >
+                      {money(viewInvoiceRemaining)}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </DialogContent>
+            <DialogActions sx={{ px: 3, py: 2 }}>
+              <Button
+                variant="outlined"
+                color="inherit"
+                onClick={() => setViewInvoice(null)}
+                sx={{ borderRadius: 2, textTransform: "none" }}
+              >
+                Close
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
     </Box>
   );
 }
