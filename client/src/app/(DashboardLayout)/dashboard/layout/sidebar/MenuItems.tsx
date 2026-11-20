@@ -15,6 +15,7 @@ import {
   IconLogin,
   IconUserPlus,
   IconAddressBook,
+  IconTruck
 } from "@tabler/icons-react";
 
 import { uniqueId } from "lodash";
@@ -38,7 +39,7 @@ const Menuitems = [
 
   {
     id: uniqueId(),
-    title: "Product",
+    title: "Product Order",
     icon: IconPackage,
     href: "/dashboard/product-order",
   },
@@ -47,6 +48,12 @@ const Menuitems = [
     title: "Customer",
     icon: IconAddressBook,
     href: "/dashboard/customer",
+  },
+  {
+    id: uniqueId(),
+    title: "Supplier",
+    icon: IconTruck,
+    href: "/dashboard/supplier",
   },
   {
     id: uniqueId(),
