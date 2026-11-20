@@ -44,286 +44,24 @@ import {
   SearchOutlined,
   VisibilityOutlined,
   PostAdd,
+  Print,
 } from "@mui/icons-material";
 import Alert from "@/app/components/Alert";
 
-type Supplier = {
-  id: string;
-  name: string;
-  ntn: string;
-  address: string;
-  phone: string;
-};
-
-type PurchaseHistoryProduct = {
-  productName: string;
-  batchNumber: string;
-  expiryDate: string;
-  quantity: number;
-  unit: string;
-  purchaseRate: number;
-  discount: number;
-  taxPercent: number;
-  taxAmount: number;
-  subTotal: number;
-  grandTotal: number;
-};
-
-type PurchaseHistoryInvoice = {
-  invoiceNo: string;
-  date: string;
-  dueDate?: string;
-  paymentType: string;
-  paidAmount: number;
-  grandTotal: number;
-  products: PurchaseHistoryProduct[];
-};
-
-/** Invoice row used by the "All Purchase Invoices" grid (invoice + owning supplier). */
-type InvoiceRecord = PurchaseHistoryInvoice & {
-  supplierId: string;
-  supplierName: string;
-};
-
-type InvoiceItem = {
-  id: number;
-  supplierName: string;
-  supplierNtn: string;
-  invoiceNumber: string;
-  invoiceDate: string;
-  productName: string;
-  batchNumber: string;
-  expiryDate: string;
-  quantity: number;
-  unit: string;
-  purchaseRate: number;
-  discount: number;
-  taxPercent: number;
-  taxAmount: number;
-  subTotal: number;
-  grandTotal: number;
-};
-
-type FormState = {
-  supplierName: string;
-  supplierNtn: string;
-  invoiceNumber: string;
-  invoiceDate: string;
-  productName: string;
-  batchNumber: string;
-  expiryDate: string;
-  quantity: string;
-  unit: string;
-  purchaseRate: string;
-  discount: string;
-  tax: string;
-  
-  
-  
-};
-
-const emptyForm: FormState = {
-  supplierName: "",
-  supplierNtn: "",
-  invoiceNumber: "",
-  invoiceDate: "",
-  productName: "",
-  batchNumber: "",
-  expiryDate: "",
-  quantity: "",
-  unit: "",
-  purchaseRate: "",
-  discount: "",
-  tax: "",
-  
-  
-  
-};
-
-// Demo suppliers and history. Replace these with supplier and purchase-history API data.
-const suppliers: Supplier[] = [
-  {
-    id: "SUP-001",
-    name: "Medico Distributors",
-    ntn: "1234567-8",
-    address: "Jodia Bazaar, Karachi",
-    phone: "021-32345678",
-  },
-  {
-    id: "SUP-002",
-    name: "Pak Pharma Supply",
-    ntn: "7654321-0",
-    address: "Saddar, Karachi",
-    phone: "021-35678901",
-  },
-  {
-    id: "SUP-003",
-    name: "HealthCare Agencies",
-    ntn: "4567890-1",
-    address: "Gulberg, Lahore",
-    phone: "042-37890123",
-  },
-];
-
-const supplierHistory: Record<string, PurchaseHistoryInvoice[]> = {
-  "SUP-001": [
-    {
-      invoiceNo: "SUP-INV-1042",
-      date: "2026-10-28",
-      dueDate: "2026-11-27",
-      paymentType: "Credit",
-      paidAmount: 200000,
-      grandTotal: 346000,
-      products: [
-        {
-          productName: "Paracetamol 500mg",
-          batchNumber: "PCM-25A",
-          expiryDate: "2027-12-31",
-          quantity: 500,
-          unit: "Box",
-          purchaseRate: 420,
-          discount: 0,
-          taxPercent: 0,
-          taxAmount: 0,
-          subTotal: 210000,
-          grandTotal: 210000,
-        },
-        {
-          productName: "Amoxicillin 500mg",
-          batchNumber: "AMX-25A",
-          expiryDate: "2027-08-31",
-          quantity: 200,
-          unit: "Pack",
-          purchaseRate: 680,
-          discount: 0,
-          taxPercent: 0,
-          taxAmount: 0,
-          subTotal: 136000,
-          grandTotal: 136000,
-        },
-      ],
-    },
-    {
-      invoiceNo: "SUP-INV-0998",
-      date: "2026-09-12",
-      dueDate: "2026-10-12",
-      paymentType: "Bank Transfer",
-      paidAmount: 136000,
-      grandTotal: 136000,
-      products: [
-        {
-          productName: "Amoxicillin 500mg",
-          batchNumber: "AMX-24B",
-          expiryDate: "2027-08-31",
-          quantity: 200,
-          unit: "Pack",
-          purchaseRate: 680,
-          discount: 0,
-          taxPercent: 0,
-          taxAmount: 0,
-          subTotal: 136000,
-          grandTotal: 136000,
-        },
-      ],
-    },
-    {
-      invoiceNo: "SUP-INV-0941",
-      date: "2026-08-04",
-      dueDate: "2026-09-03",
-      paymentType: "Credit",
-      paidAmount: 0,
-      grandTotal: 123000,
-      products: [
-        {
-          productName: "Paracetamol 500mg",
-          batchNumber: "PCM-24C",
-          expiryDate: "2027-05-31",
-          quantity: 300,
-          unit: "Box",
-          purchaseRate: 410,
-          discount: 0,
-          taxPercent: 0,
-          taxAmount: 0,
-          subTotal: 123000,
-          grandTotal: 123000,
-        },
-      ],
-    },
-  ],
-  "SUP-002": [
-    {
-      invoiceNo: "PPS-7781",
-      date: "2026-10-17",
-      dueDate: "2026-11-16",
-      paymentType: "Cash",
-      paidAmount: 14250,
-      grandTotal: 14250,
-      products: [
-        {
-          productName: "Normal Saline 500ml",
-          batchNumber: "NS-610",
-          expiryDate: "2028-02-28",
-          quantity: 150,
-          unit: "Bottle",
-          purchaseRate: 95,
-          discount: 0,
-          taxPercent: 0,
-          taxAmount: 0,
-          subTotal: 14250,
-          grandTotal: 14250,
-        },
-      ],
-    },
-    {
-      invoiceNo: "PPS-7702",
-      date: "2026-09-22",
-      dueDate: "2026-10-22",
-      paymentType: "Credit",
-      paidAmount: 40000,
-      grandTotal: 96000,
-      products: [
-        {
-          productName: "Dextrose 5% 1000ml",
-          batchNumber: "DX-118",
-          expiryDate: "2028-05-31",
-          quantity: 320,
-          unit: "Bottle",
-          purchaseRate: 300,
-          discount: 0,
-          taxPercent: 0,
-          taxAmount: 0,
-          subTotal: 96000,
-          grandTotal: 96000,
-        },
-      ],
-    },
-  ],
-  "SUP-003": [
-    {
-      invoiceNo: "HCA-3320",
-      date: "2026-10-05",
-      dueDate: "2026-11-04",
-      paymentType: "Credit",
-      paidAmount: 25000,
-      grandTotal: 118000,
-      products: [
-        {
-          productName: "Surgical Gloves (Medium)",
-          batchNumber: "SG-442",
-          expiryDate: "2029-01-31",
-          quantity: 100,
-          unit: "Box",
-          purchaseRate: 1180,
-          discount: 0,
-          taxPercent: 0,
-          taxAmount: 0,
-          subTotal: 118000,
-          grandTotal: 118000,
-        },
-      ],
-    },
-  ],
-};
+import {
+  type Supplier,
+  type PurchaseHistoryProduct,
+  type PurchaseHistoryInvoice,
+  type InvoiceRecord,
+  type InvoiceItem,
+  type FormState,
+  emptyForm,
+  suppliers,
+  supplierHistory,
+  batchOptions,
+  sortOptions,
+  UNIT_OPTIONS,
+} from "@/app/data/demodata";
 
 const fieldSx = {
   "& .MuiOutlinedInput-root": { borderRadius: 2, bgcolor: "#fff" },
@@ -383,13 +121,6 @@ function Section({ icon, title, subtitle, children }: SectionProps) {
   );
 }
 
-const batchOptions = [
-  { batchNumber: "BATCH-001" },
-  { batchNumber: "BATCH-002" },
-  { batchNumber: "BATCH-003" },
-  { batchNumber: "BATCH-004" },
-  { batchNumber: "BATCH-005" },
-];
 const money = (value: number) =>
   new Intl.NumberFormat("en-PK", {
     style: "currency",
@@ -418,23 +149,6 @@ const statusOrder: Record<"Pending" | "Partial" | "Paid", number> = {
   Partial: 1,
   Paid: 2,
 };
-
-const paymentTypeOptions = [
-  "Cash",
-  "Credit",
-  "Bank Transfer",
-  "Cheque",
-  "Online",
-];
-
-const sortOptions = [
-  { value: "date-desc", label: "Date (Newest first)" },
-  { value: "date-asc", label: "Date (Oldest first)" },
-  { value: "invoice-asc", label: "Invoice No. (A - Z)" },
-  { value: "total-desc", label: "Grand Total (High to Low)" },
-  { value: "total-asc", label: "Grand Total (Low to High)" },
-  { value: "status", label: "Status (Pending first)" },
-];
 
 /** Recalculate a single invoice line (qty, rate, discount, GST). */
 const recalcProduct = (
@@ -577,9 +291,7 @@ export default function PurchaseInvoicePage() {
         const haystack = [
           row.invoiceNo,
           row.supplierName,
-          row.paymentType,
           row.date,
-          row.dueDate ?? "",
           ...row.products.map((product) => product.productName),
         ]
           .join(" ")
@@ -731,10 +443,7 @@ export default function PurchaseInvoicePage() {
       );
       return;
     }
-    if (!form.paymentType) {
-      showMessage("error", "Please select a payment type.");
-      return;
-    }
+
     if (paidAmount < 0 || paidAmount > grandTotal) {
       showMessage(
         "error",
@@ -742,13 +451,8 @@ export default function PurchaseInvoicePage() {
       );
       return;
     }
-    if (remainingBalance > 0 && !form.dueDate) {
-      showMessage(
-        "error",
-        "Please select a due date for the remaining balance.",
-      );
-      return;
-    }
+
+    // Save invoice logic here...
 
     showMessage("success", "Purchase order saved successfully");
   };
@@ -769,7 +473,7 @@ export default function PurchaseInvoicePage() {
   };
 
   const updateDraftField = (
-    field: "invoiceNo" | "date" | "dueDate" | "paymentType" | "paidAmount",
+    field: "invoiceNo" | "date" | "paidAmount",
     value: string | number,
   ) => {
     setEditDraft((previous) =>
@@ -787,7 +491,10 @@ export default function PurchaseInvoicePage() {
       if (!previous) return previous;
       const products = previous.products.map((product, productIndex) => {
         if (productIndex !== index) return product;
-        return recalcProduct({ ...product, [field]: value } as PurchaseHistoryProduct);
+        return recalcProduct({
+          ...product,
+          [field]: value,
+        } as PurchaseHistoryProduct);
       });
       return { ...previous, products };
     });
@@ -871,16 +578,11 @@ export default function PurchaseInvoicePage() {
       );
       return;
     }
-    if (newGrandTotal - rawPaid > 0 && !editDraft.dueDate) {
-      setEditError("Please provide a due date for the remaining balance.");
-      return;
-    }
 
     const updatedInvoice: PurchaseHistoryInvoice = {
       invoiceNo,
       date: editDraft.date,
-      dueDate: editDraft.dueDate || undefined,
-      paymentType: editDraft.paymentType,
+
       paidAmount: rawPaid,
       grandTotal: newGrandTotal,
       products,
@@ -1209,17 +911,7 @@ export default function PurchaseInvoicePage() {
                   <MenuItem value="" disabled>
                     Select unit
                   </MenuItem>
-                  {[
-                    "Piece",
-                    "Pack",
-                    "Box",
-                    "Bottle",
-                    "Vial",
-                    "Strip",
-                    "Carton",
-                    "Kg",
-                    "Liter",
-                  ].map((unit) => (
+                  {UNIT_OPTIONS.map((unit) => (
                     <MenuItem key={unit} value={unit}>
                       {unit}
                     </MenuItem>
@@ -1669,9 +1361,7 @@ export default function PurchaseInvoicePage() {
                 mb={1.5}
               >
                 <Typography fontWeight={700} fontSize={14}>
-                  {selectedSupplier
-                    ? selectedSupplier.name
-                    : "All suppliers"}
+                  {selectedSupplier ? selectedSupplier.name : "All suppliers"}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   {visibleInvoices.length} invoice(s)
@@ -1699,14 +1389,11 @@ export default function PurchaseInvoicePage() {
                           "Supplier",
                           "Invoice No.",
                           "Date",
-                          "Due Date",
-                          
+
                           "Items",
                           "Grand Total",
                           "Paid",
                           "Remaining",
-                          
-                          
                         ].map((heading) => (
                           <TableCell
                             key={heading}
@@ -1747,12 +1434,7 @@ export default function PurchaseInvoicePage() {
                             >
                               {invoice.date}
                             </TableCell>
-                            <TableCell
-                              sx={{ fontSize: 12, whiteSpace: "nowrap" }}
-                            >
-                              {invoice.dueDate || "-"}
-                            </TableCell>
-                      
+
                             <TableCell sx={{ fontSize: 12 }}>
                               {invoice.products.length} item(s)
                             </TableCell>
@@ -1827,6 +1509,22 @@ export default function PurchaseInvoicePage() {
                                     Edit
                                   </Button>
                                 </Tooltip>
+                                <Tooltip title="Print Invoice">
+                                  <Button
+                                    size="small"
+                                    variant="outlined"
+                                    color="success"
+                                    startIcon={<Print fontSize="small" />}
+                                    sx={{
+                                      borderRadius: 1.5,
+                                      textTransform: "none",
+                                      minWidth: 78,
+                                      fontSize: 12,
+                                    }}
+                                  >
+                                    Print
+                                  </Button>
+                                </Tooltip>
                               </Stack>
                             </TableCell>
                           </TableRow>
@@ -1878,7 +1576,7 @@ export default function PurchaseInvoicePage() {
                   "&:hover": { bgcolor: "#1d4ed8", boxShadow: "none" },
                 }}
               >
-                Save Purchase order
+                Add Purchase order
               </Button>
               <Button
                 variant="contained"
@@ -1893,7 +1591,7 @@ export default function PurchaseInvoicePage() {
                   "&:hover": { bgcolor: "#1d4ed8", boxShadow: "none" },
                 }}
               >
-                Create Invoice
+                Invoice
               </Button>
             </Stack>
           </Stack>
@@ -1938,15 +1636,6 @@ export default function PurchaseInvoicePage() {
                     />
                   )}
                 </Stack>
-                <Typography variant="caption" color="text.secondary">
-                  {viewInvoice.date}
-                  {viewInvoice.dueDate
-                    ? ` · Due ${viewInvoice.dueDate}`
-                    : ""}
-                  {viewInvoice.paymentType
-                    ? ` · ${viewInvoice.paymentType}`
-                    : ""}
-                </Typography>
               </Box>
               <IconButton
                 size="small"
@@ -2042,19 +1731,14 @@ export default function PurchaseInvoicePage() {
                   </TableHead>
                   <TableBody>
                     {viewInvoice.products.map((product, index) => (
-                      <TableRow
-                        key={`${product.batchNumber}-${index}`}
-                        hover
-                      >
+                      <TableRow key={`${product.batchNumber}-${index}`} hover>
                         <TableCell sx={{ fontSize: 11, minWidth: 150 }}>
                           {product.productName}
                         </TableCell>
                         <TableCell sx={{ fontSize: 11 }}>
                           {product.batchNumber}
                         </TableCell>
-                        <TableCell
-                          sx={{ fontSize: 11, whiteSpace: "nowrap" }}
-                        >
+                        <TableCell sx={{ fontSize: 11, whiteSpace: "nowrap" }}>
                           {product.expiryDate}
                         </TableCell>
                         <TableCell sx={{ fontSize: 11 }}>
@@ -2063,24 +1747,16 @@ export default function PurchaseInvoicePage() {
                         <TableCell sx={{ fontSize: 11 }}>
                           {product.unit}
                         </TableCell>
-                        <TableCell
-                          sx={{ fontSize: 11, whiteSpace: "nowrap" }}
-                        >
+                        <TableCell sx={{ fontSize: 11, whiteSpace: "nowrap" }}>
                           {money(product.purchaseRate)}
                         </TableCell>
-                        <TableCell
-                          sx={{ fontSize: 11, whiteSpace: "nowrap" }}
-                        >
+                        <TableCell sx={{ fontSize: 11, whiteSpace: "nowrap" }}>
                           {money(product.discount)}
                         </TableCell>
-                        <TableCell
-                          sx={{ fontSize: 11, whiteSpace: "nowrap" }}
-                        >
+                        <TableCell sx={{ fontSize: 11, whiteSpace: "nowrap" }}>
                           {money(product.subTotal)}
                         </TableCell>
-                        <TableCell
-                          sx={{ fontSize: 11, whiteSpace: "nowrap" }}
-                        >
+                        <TableCell sx={{ fontSize: 11, whiteSpace: "nowrap" }}>
                           {money(product.taxAmount)}
                         </TableCell>
                         <TableCell
@@ -2165,9 +1841,7 @@ export default function PurchaseInvoicePage() {
                     </Typography>
                     <Typography
                       fontWeight={800}
-                      color={
-                        viewInvoiceRemaining > 0 ? "#b45309" : "#15803d"
-                      }
+                      color={viewInvoiceRemaining > 0 ? "#b45309" : "#15803d"}
                     >
                       {money(viewInvoiceRemaining)}
                     </Typography>
@@ -2258,35 +1932,7 @@ export default function PurchaseInvoicePage() {
                   InputLabelProps={{ shrink: true }}
                   sx={fieldSx}
                 />
-                <TextField
-                  fullWidth
-                  size="small"
-                  type="date"
-                  label="Due Date"
-                  value={editDraft.dueDate ?? ""}
-                  onChange={(event) =>
-                    updateDraftField("dueDate", event.target.value)
-                  }
-                  InputLabelProps={{ shrink: true }}
-                  sx={fieldSx}
-                />
-                <TextField
-                  fullWidth
-                  select
-                  size="small"
-                  label="Payment Type"
-                  value={editDraft.paymentType}
-                  onChange={(event) =>
-                    updateDraftField("paymentType", event.target.value)
-                  }
-                  sx={fieldSx}
-                >
-                  {paymentTypeOptions.map((option) => (
-                    <MenuItem key={option} value={option}>
-                      {option}
-                    </MenuItem>
-                  ))}
-                </TextField>
+
                 <TextField
                   fullWidth
                   size="small"
@@ -2485,14 +2131,10 @@ export default function PurchaseInvoicePage() {
                             sx={editCellFieldSx}
                           />
                         </TableCell>
-                        <TableCell
-                          sx={{ fontSize: 11, whiteSpace: "nowrap" }}
-                        >
+                        <TableCell sx={{ fontSize: 11, whiteSpace: "nowrap" }}>
                           {money(product.subTotal)}
                         </TableCell>
-                        <TableCell
-                          sx={{ fontSize: 11, whiteSpace: "nowrap" }}
-                        >
+                        <TableCell sx={{ fontSize: 11, whiteSpace: "nowrap" }}>
                           {money(product.taxAmount)}
                         </TableCell>
                         <TableCell

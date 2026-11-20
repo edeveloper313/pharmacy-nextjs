@@ -15,7 +15,8 @@ import {
   IconLogin,
   IconUserPlus,
   IconAddressBook,
-  IconTruck
+  IconTruck,
+  IconHistory,
 } from "@tabler/icons-react";
 
 import { uniqueId } from "lodash";
@@ -61,17 +62,18 @@ const Menuitems = [
     icon: IconUserPlus,
     href: "/dashboard/purchase-order",
   },
+
+  {
+    id: uniqueId(),
+    title: "Product Order History",
+    icon: IconHistory,
+    href: "/dashboard/porduct-order-history",
+  },
   {
     id: uniqueId(),
     title: "Sale Order Entry",
     icon: IconShoppingCart,
     href: "/dashboard/sale-order-entry",
-  },
-  {
-    id: uniqueId(),
-    title: "Sales Invoice Updating",
-    icon: IconReceipt,
-    href: "/dashboard/sale-invoice-updating",
   },
   {
     id: uniqueId(),
