@@ -298,7 +298,7 @@ export default function HospitalRecoveryEntryPage() {
     }
 
     const newEntry: SalesEntry = {
-      id: Date.now(),
+      id: Date.now(), 
       serialNumber: form.serialNumber.trim(),
       productName: form.productName.trim(),
       productId: form.productId.trim(),
