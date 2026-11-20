@@ -1,6 +1,6 @@
 /** Shared demo data and matching TypeScript types for the Purchase Invoice page. */
 
-export type Supplier = {
+export type Vendor = {
   id: string;
   name: string;
   ntn: string;
@@ -22,265 +22,13 @@ export type PurchaseHistoryProduct = {
   grandTotal: number;
 };
 
-export type PurchaseHistoryInvoice = {
-  invoiceNo: string;
-  date: string;
-  paidAmount: number;
-  grandTotal: number;
-  products: PurchaseHistoryProduct[];
-};
 
-/** Invoice row used by the "All Purchase Invoices" grid (invoice + owning supplier). */
-export type InvoiceRecord = PurchaseHistoryInvoice & {
-  supplierId: string;
-  supplierName: string;
-};
 
-export type InvoiceItem = {
-  id: number;
-  supplierName: string;
-  supplierNtn: string;
-  invoiceNumber: string;
-  invoiceDate: string;
-  productName: string;
-  batchNumber: string;
-  expiryDate: string;
-  quantity: number;
-  unit: string;
-  purchaseRate: number;
-  discount: number;
-  taxPercent: number;
-  taxAmount: number;
-  subTotal: number;
-  grandTotal: number;
-};
 
-export type FormState = {
-  supplierName: string;
-  supplierNtn: string;
-  invoiceNumber: string;
-  invoiceDate: string;
-  productName: string;
-  batchNumber: string;
-  expiryDate: string;
-  quantity: string;
-  unit: string;
-  purchaseRate: string;
-  discount: string;
-  tax: string;
-  paidAmount: string;
-};
 
-export const emptyForm: FormState = {
-  supplierName: "",
-  supplierNtn: "",
-  invoiceNumber: "",
-  invoiceDate: "",
-  productName: "",
-  batchNumber: "",
-  expiryDate: "",
-  quantity: "",
-  unit: "",
-  purchaseRate: "",
-  discount: "",
-  tax: "",
-  paidAmount: "",
-};
 
-// Demo suppliers and history. Replace these with supplier and purchase-history API data.
-export const suppliers: Supplier[] = [
-  {
-    id: "SUP-001",
-    name: "Medico Distributors",
-    ntn: "1234567-8",
-    address: "Jodia Bazaar, Karachi",
-    phone: "021-32345678",
-  },
-  {
-    id: "SUP-002",
-    name: "Pak Pharma Supply",
-    ntn: "7654321-0",
-    address: "Saddar, Karachi",
-    phone: "021-35678901",
-  },
-  {
-    id: "SUP-003",
-    name: "HealthCare Agencies",
-    ntn: "4567890-1",
-    address: "Gulberg, Lahore",
-    phone: "042-37890123",
-  },
-];
+// Demo vendors and history. Replace these with vendor and purchase-history API data.
 
-export const supplierHistory: Record<string, PurchaseHistoryInvoice[]> = {
-  "SUP-001": [
-    {
-      invoiceNo: "SUP-INV-1042",
-      date: "2026-10-28",
-
-      paidAmount: 200000,
-      grandTotal: 346000,
-      products: [
-        {
-          productName: "Paracetamol 500mg",
-          batchNumber: "PCM-25A",
-          expiryDate: "2027-12-31",
-          quantity: 500,
-          unit: "Box",
-          purchaseRate: 420,
-          discount: 0,
-          taxPercent: 0,
-          taxAmount: 0,
-          subTotal: 210000,
-          grandTotal: 210000,
-        },
-        {
-          productName: "Amoxicillin 500mg",
-          batchNumber: "AMX-25A",
-          expiryDate: "2027-08-31",
-          quantity: 200,
-          unit: "Pack",
-          purchaseRate: 680,
-          discount: 0,
-          taxPercent: 0,
-          taxAmount: 0,
-          subTotal: 136000,
-          grandTotal: 136000,
-        },
-      ],
-    },
-    {
-      invoiceNo: "SUP-INV-0998",
-      date: "2026-09-12",
-
-      paidAmount: 136000,
-      grandTotal: 136000,
-      products: [
-        {
-          productName: "Amoxicillin 500mg",
-          batchNumber: "AMX-24B",
-          expiryDate: "2027-08-31",
-          quantity: 200,
-          unit: "Pack",
-          purchaseRate: 680,
-          discount: 0,
-          taxPercent: 0,
-          taxAmount: 0,
-          subTotal: 136000,
-          grandTotal: 136000,
-        },
-      ],
-    },
-    {
-      invoiceNo: "SUP-INV-0941",
-      date: "2026-08-04",
-
-      paidAmount: 0,
-      grandTotal: 123000,
-      products: [
-        {
-          productName: "Paracetamol 500mg",
-          batchNumber: "PCM-24C",
-          expiryDate: "2027-05-31",
-          quantity: 300,
-          unit: "Box",
-          purchaseRate: 410,
-          discount: 0,
-          taxPercent: 0,
-          taxAmount: 0,
-          subTotal: 123000,
-          grandTotal: 123000,
-        },
-      ],
-    },
-  ],
-  "SUP-002": [
-    {
-      invoiceNo: "PPS-7781",
-      date: "2026-10-17",
-
-      paidAmount: 14250,
-      grandTotal: 14250,
-      products: [
-        {
-          productName: "Normal Saline 500ml",
-          batchNumber: "NS-610",
-          expiryDate: "2028-02-28",
-          quantity: 150,
-          unit: "Bottle",
-          purchaseRate: 95,
-          discount: 0,
-          taxPercent: 0,
-          taxAmount: 0,
-          subTotal: 14250,
-          grandTotal: 14250,
-        },
-      ],
-    },
-    {
-      invoiceNo: "PPS-7702",
-      date: "2026-09-22",
-
-      paidAmount: 40000,
-      grandTotal: 96000,
-      products: [
-        {
-          productName: "Dextrose 5% 1000ml",
-          batchNumber: "DX-118",
-          expiryDate: "2028-05-31",
-          quantity: 320,
-          unit: "Bottle",
-          purchaseRate: 300,
-          discount: 0,
-          taxPercent: 0,
-          taxAmount: 0,
-          subTotal: 96000,
-          grandTotal: 96000,
-        },
-      ],
-    },
-  ],
-  "SUP-003": [
-    {
-      invoiceNo: "HCA-3320",
-      date: "2026-10-05",
-
-      paidAmount: 25000,
-      grandTotal: 118000,
-      products: [
-        {
-          productName: "Surgical Gloves (Medium)",
-          batchNumber: "SG-442",
-          expiryDate: "2029-01-31",
-          quantity: 100,
-          unit: "Box",
-          purchaseRate: 1180,
-          discount: 0,
-          taxPercent: 0,
-          taxAmount: 0,
-          subTotal: 118000,
-          grandTotal: 118000,
-        },
-      ],
-    },
-  ],
-};
-
-export const batchOptions = [
-  { batchNumber: "BATCH-001" },
-  { batchNumber: "BATCH-002" },
-  { batchNumber: "BATCH-003" },
-  { batchNumber: "BATCH-004" },
-  { batchNumber: "BATCH-005" },
-];
-
-export const paymentTypeOptions = [
-  "Cash",
-  "Credit",
-  "Bank Transfer",
-  "Cheque",
-  "Online",
-];
 
 export const sortOptions = [
   { value: "date-desc", label: "Date (Newest first)" },
@@ -319,7 +67,7 @@ export type ProductHistoryType =
   | "Return Out"
   | "Adjustment";
 
-export type PartyType = "Supplier" | "Customer" | "Internal";
+export type PartyType = "Vendor" | "Customer" | "Internal";
 
 /** Product master info (also used by the "All Products" grid). */
 export type Product = {
@@ -532,7 +280,7 @@ export const productHistory: Record<string, ProductHistoryRecord[]> = {
       type: "Purchase",
       date: "2026-08-04",
       partyName: "Medico Distributors",
-      partyType: "Supplier",
+      partyType: "Vendor",
       quantity: 500,
       unit: "Box",
       rate: 420,
@@ -542,7 +290,7 @@ export const productHistory: Record<string, ProductHistoryRecord[]> = {
       taxAmount: 0,
       totalAmount: 210000,
       status: "Completed",
-      notes: "Opening stock from supplier.",
+      notes: "Opening stock from vendor.",
     },
     {
       id: 2,
@@ -598,7 +346,7 @@ export const productHistory: Record<string, ProductHistoryRecord[]> = {
       type: "Purchase",
       date: "2026-10-28",
       partyName: "Medico Distributors",
-      partyType: "Supplier",
+      partyType: "Vendor",
       quantity: 300,
       unit: "Box",
       rate: 410,
@@ -644,7 +392,7 @@ export const productHistory: Record<string, ProductHistoryRecord[]> = {
       type: "Purchase",
       date: "2026-07-12",
       partyName: "Pak Pharma Supply",
-      partyType: "Supplier",
+      partyType: "Vendor",
       quantity: 200,
       unit: "Pack",
       rate: 680,
@@ -688,7 +436,7 @@ export const productHistory: Record<string, ProductHistoryRecord[]> = {
       type: "Purchase",
       date: "2026-09-12",
       partyName: "Pak Pharma Supply",
-      partyType: "Supplier",
+      partyType: "Vendor",
       quantity: 200,
       unit: "Pack",
       rate: 680,
@@ -734,7 +482,7 @@ export const productHistory: Record<string, ProductHistoryRecord[]> = {
       type: "Purchase",
       date: "2026-08-14",
       partyName: "Pak Pharma Supply",
-      partyType: "Supplier",
+      partyType: "Vendor",
       quantity: 150,
       unit: "Bottle",
       rate: 95,
@@ -778,7 +526,7 @@ export const productHistory: Record<string, ProductHistoryRecord[]> = {
       type: "Purchase",
       date: "2026-10-02",
       partyName: "Pak Pharma Supply",
-      partyType: "Supplier",
+      partyType: "Vendor",
       quantity: 200,
       unit: "Bottle",
       rate: 95,
@@ -824,7 +572,7 @@ export const productHistory: Record<string, ProductHistoryRecord[]> = {
       type: "Purchase",
       date: "2026-08-01",
       partyName: "Medico Distributors",
-      partyType: "Supplier",
+      partyType: "Vendor",
       quantity: 300,
       unit: "Strip",
       rate: 180,
@@ -868,7 +616,7 @@ export const productHistory: Record<string, ProductHistoryRecord[]> = {
       type: "Purchase",
       date: "2026-10-08",
       partyName: "Medico Distributors",
-      partyType: "Supplier",
+      partyType: "Vendor",
       quantity: 250,
       unit: "Strip",
       rate: 175,
@@ -914,7 +662,7 @@ export const productHistory: Record<string, ProductHistoryRecord[]> = {
       type: "Purchase",
       date: "2026-09-15",
       partyName: "Medico Distributors",
-      partyType: "Supplier",
+      partyType: "Vendor",
       quantity: 40,
       unit: "Piece",
       rate: 850,
@@ -924,7 +672,7 @@ export const productHistory: Record<string, ProductHistoryRecord[]> = {
       taxAmount: 0,
       totalAmount: 34000,
       status: "Completed",
-      notes: "Restocked from supplier.",
+      notes: "Restocked from vendor.",
     },
   ],
   "PRD-006": [
@@ -938,7 +686,7 @@ export const productHistory: Record<string, ProductHistoryRecord[]> = {
       type: "Purchase",
       date: "2026-10-01",
       partyName: "Pak Pharma Supply",
-      partyType: "Supplier",
+      partyType: "Vendor",
       quantity: 20,
       unit: "Vial",
       rate: 2500,
@@ -962,7 +710,7 @@ export const productHistory: Record<string, ProductHistoryRecord[]> = {
       type: "Purchase",
       date: "2026-08-20",
       partyName: "Medico Distributors",
-      partyType: "Supplier",
+      partyType: "Vendor",
       quantity: 100,
       unit: "Strip",
       rate: 180,
@@ -986,7 +734,7 @@ export const productHistory: Record<string, ProductHistoryRecord[]> = {
       type: "Purchase",
       date: "2026-09-10",
       partyName: "Pak Pharma Supply",
-      partyType: "Supplier",
+      partyType: "Vendor",
       quantity: 250,
       unit: "Strip",
       rate: 120,
@@ -1010,7 +758,7 @@ export const productHistory: Record<string, ProductHistoryRecord[]> = {
       type: "Purchase",
       date: "2026-10-12",
       partyName: "Medico Distributors",
-      partyType: "Supplier",
+      partyType: "Vendor",
       quantity: 180,
       unit: "Strip",
       rate: 320,
@@ -1034,7 +782,7 @@ export const productHistory: Record<string, ProductHistoryRecord[]> = {
       type: "Purchase",
       date: "2026-07-01",
       partyName: "Medico Distributors",
-      partyType: "Supplier",
+      partyType: "Vendor",
       quantity: 50,
       unit: "Strip",
       rate: 40,
@@ -1092,3 +840,256 @@ export const productStatusOptions: ProductStatus[] = [
   "Out of Stock",
   "Discontinued",
 ];
+
+// Purchase page data:
+// ==================== Types ====================
+
+export type vendor = {
+  id: string;
+  name: string;
+  ntn: string;
+  phone: string;
+  address: string;
+};
+
+export type PurchaseHistoryInvoice = {
+  invoiceNo: string;
+  date: string;
+  paidAmount: number;
+  grandTotal: number;
+  products: PurchaseHistoryProduct[];
+};
+
+export type InvoiceRecord = PurchaseHistoryInvoice & {
+  vendorId: string;
+  vendorName: string;
+};
+
+export type InvoiceItem = {
+  id: number;
+  vendorName: string;
+  vendorNtn: string;
+  invoiceNumber: string;
+  invoiceDate: string;
+  productName: string;
+  batchNumber: string;
+  expiryDate: string;
+  quantity: number;
+  unit: string;
+  purchaseRate: number;
+  discount: number;
+  taxPercent: number;
+  taxAmount: number;
+  subTotal: number;
+  grandTotal: number;
+};
+
+export type FormState = {
+  vendorName: string;
+  vendorNtn: string;
+  invoiceNumber: string;
+  invoiceDate: string;
+  productName: string;
+  batchNumber: string;
+  expiryDate: string;
+  currentQty: string;
+  quantity: string;
+  unit: string;
+  purchaseRate: string;
+  sellingPrice: string;
+  discount: string;
+  tax: string;
+  paidAmount: string;
+};
+
+// Product + Batch mapping used for search, bidirectional filtering, and auto-fill
+export type ProductBatchItem = {
+  id: string;
+  productName: string;
+  batchNumber: string;
+  expiryDate: string;
+  currentQty: number;
+  unit: string;
+  purchaseRate: number;
+  sellingPrice: number;
+};
+
+// ==================== Initial Form State ====================
+
+export const emptyForm: FormState = {
+  vendorName: "",
+  vendorNtn: "",
+  invoiceNumber: "",
+  invoiceDate: "",
+  productName: "",
+  batchNumber: "",
+  expiryDate: "",
+  currentQty: "",
+  quantity: "",
+  unit: "",
+  purchaseRate: "",
+  sellingPrice: "",
+  discount: "",
+  tax: "",
+  paidAmount: "",
+};
+
+// ==================== Demo Vendors ====================
+
+export const vendors: vendor[] = [
+  {
+    id: "v-1",
+    name: "MedLife Distributors",
+    ntn: "42101-8899123-1",
+    phone: "0300-1122334",
+    address: "Plot 14, Industrial Area, Lahore",
+  },
+  {
+    id: "v-2",
+    name: "CarePlus Pharma Traders",
+    ntn: "35202-7744112-9",
+    phone: "0321-9988776",
+    address: "Suite 8, Medicine Market, Karachi",
+  },
+  {
+    id: "v-3",
+    name: "Sehat Supply Co.",
+    ntn: "61101-5544332-5",
+    phone: "0333-4455667",
+    address: "Block C, Blue Area, Islamabad",
+  },
+];
+
+// ==================== Demo Product & Batch Catalog ====================
+// Multiple products can exist in the same batch, and one product can exist in multiple batches.
+
+export const productBatchCatalog: ProductBatchItem[] = [
+  {
+    id: "pb-1",
+    productName: "Panadol 500mg Tablet",
+    batchNumber: "BATCH-101",
+    expiryDate: "2027-08-15",
+    currentQty: 250,
+    unit: "Box",
+    purchaseRate: 180,
+    sellingPrice: 220,
+  },
+  {
+    id: "pb-2",
+    productName: "Panadol 500mg Tablet",
+    batchNumber: "BATCH-102",
+    expiryDate: "2028-01-20",
+    currentQty: 120,
+    unit: "Box",
+    purchaseRate: 185,
+    sellingPrice: 225,
+  },
+  {
+    id: "pb-3",
+    productName: "Augmentin 625mg Tablet",
+    batchNumber: "BATCH-101",
+    expiryDate: "2027-06-30",
+    currentQty: 90,
+    unit: "Pack",
+    purchaseRate: 420,
+    sellingPrice: 495,
+  },
+  {
+    id: "pb-4",
+    productName: "Augmentin 625mg Tablet",
+    batchNumber: "BATCH-205",
+    expiryDate: "2027-11-10",
+    currentQty: 60,
+    unit: "Pack",
+    purchaseRate: 430,
+    sellingPrice: 510,
+  },
+  {
+    id: "pb-5",
+    productName: "Brufen 400mg Tablet",
+    batchNumber: "BATCH-102",
+    expiryDate: "2027-09-25",
+    currentQty: 300,
+    unit: "Strip",
+    purchaseRate: 65,
+    sellingPrice: 85,
+  },
+  {
+    id: "pb-6",
+    productName: "Risek 20mg Capsule",
+    batchNumber: "BATCH-205",
+    expiryDate: "2028-03-12",
+    currentQty: 145,
+    unit: "Box",
+    purchaseRate: 310,
+    sellingPrice: 375,
+  },
+  {
+    id: "pb-7",
+    productName: "Calpol Syrup 120ml",
+    batchNumber: "BATCH-309",
+    expiryDate: "2027-05-18",
+    currentQty: 80,
+    unit: "Bottle",
+    purchaseRate: 140,
+    sellingPrice: 175,
+  },
+];
+
+// Unique batch options derived from catalog
+export const batchOptions = Array.from(
+  new Set(productBatchCatalog.map((item) => item.batchNumber)),
+).map((batchNumber) => ({ batchNumber }));
+
+// ==================== Demo Vendor Purchase History ====================
+
+export const vendorHistory: Record<string, PurchaseHistoryInvoice[]> = {
+  "v-1": [
+    {
+      invoiceNo: "SUP-INV-1001",
+      date: "2026-09-12",
+      paidAmount: 15000,
+      grandTotal: 21240,
+      products: [
+        {
+          productName: "Panadol 500mg Tablet",
+          batchNumber: "BATCH-101",
+          expiryDate: "2027-08-15",
+          quantity: 100,
+          unit: "Box",
+          purchaseRate: 180,
+          discount: 0,
+          taxPercent: 18,
+          taxAmount: 3240,
+          subTotal: 18000,
+          grandTotal: 21240,
+        },
+      ],
+    },
+  ],
+  "v-2": [
+    {
+      invoiceNo: "SUP-INV-2010",
+      date: "2026-10-03",
+      paidAmount: 25488,
+      grandTotal: 25488,
+      products: [
+        {
+          productName: "Augmentin 625mg Tablet",
+          batchNumber: "BATCH-205",
+          expiryDate: "2027-11-10",
+          quantity: 50,
+          unit: "Pack",
+          purchaseRate: 430,
+          discount: 0,
+          taxPercent: 18,
+          taxAmount: 3870,
+          subTotal: 21500,
+          grandTotal: 25370,
+        },
+      ],
+    },
+  ],
+  "v-3": [],
+};
+  

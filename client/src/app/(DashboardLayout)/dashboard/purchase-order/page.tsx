@@ -16,6 +16,7 @@ import {
   DialogTitle,
   Divider,
   InputAdornment,
+  Link as MuiLink,
   MenuItem,
   Stack,
   Table,
@@ -49,24 +50,42 @@ import {
 import Alert from "@/app/components/Alert";
 
 import {
-  type Supplier,
+  type vendor,
   type PurchaseHistoryProduct,
   type PurchaseHistoryInvoice,
   type InvoiceRecord,
   type InvoiceItem,
   type FormState,
   emptyForm,
-  suppliers,
-  supplierHistory,
-  batchOptions,
+  vendors,
+  vendorHistory,
+  productBatchCatalog,
   sortOptions,
   UNIT_OPTIONS,
 } from "@/app/data/demodata";
+
+// ==================== Shared Field & Grid Styles ====================
 
 const fieldSx = {
   "& .MuiOutlinedInput-root": { borderRadius: 2, bgcolor: "#fff" },
   "& .MuiInputLabel-root": { fontSize: 14 },
   "& .MuiFormHelperText-root": { mx: 0, fontSize: 11 },
+};
+
+// Readonly / auto-filled field style (keeps dark readable text just like Vendor NTN)
+const readonlyFieldSx = {
+  ...fieldSx,
+  "& .MuiInputBase-input.Mui-disabled": {
+    WebkitTextFillColor: "#1e293b",
+    color: "#1e293b",
+    opacity: 1,
+  },
+  "& .MuiInputLabel-root.Mui-disabled": {
+    color: "#64748b",
+  },
+  "& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#e8edf3",
+  },
 };
 
 const gridSx = {
@@ -83,6 +102,8 @@ const editCellFieldSx = {
   "& .MuiOutlinedInput-root": { borderRadius: 1, bgcolor: "#fff" },
   "& .MuiInputBase-input": { fontSize: 11, py: 0.75, px: 1 },
 };
+
+// ==================== Reusable Section Wrapper ====================
 
 type SectionProps = {
   icon: React.ReactNode;
@@ -120,6 +141,8 @@ function Section({ icon, title, subtitle, children }: SectionProps) {
     </Box>
   );
 }
+
+// ==================== Formatting & Status Helpers ====================
 
 const money = (value: number) =>
   new Intl.NumberFormat("en-PK", {
@@ -186,11 +209,11 @@ const emptyProduct: PurchaseHistoryProduct = {
   grandTotal: 0,
 };
 
+// ==================== Main Purchase Order Component ====================
+
 export default function PurchaseInvoicePage() {
   const [form, setForm] = useState<FormState>({ ...emptyForm });
-  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(
-    null,
-  );
+  const [selectedvendor, setSelectedvendor] = useState<vendor | null>(null);
   const [items, setItems] = useState<InvoiceItem[]>([]);
   const [viewInvoice, setViewInvoice] = useState<PurchaseHistoryInvoice | null>(
     null,
@@ -201,10 +224,10 @@ export default function PurchaseInvoicePage() {
   } | null>(null);
   const [messageId, setMessageId] = useState(0);
 
-  // Supplier purchase history is kept in state so the "All Purchase Invoices"
+  // Vendor purchase history is kept in state so the "All Purchase Invoices"
   // grid stays in sync after an invoice is edited.
   const [historyData, setHistoryData] =
-    useState<Record<string, PurchaseHistoryInvoice[]>>(supplierHistory);
+    useState<Record<string, PurchaseHistoryInvoice[]>>(vendorHistory);
 
   // Search / sort state for the all-invoices grid
   const [invoiceSearch, setInvoiceSearch] = useState("");
@@ -215,17 +238,93 @@ export default function PurchaseInvoicePage() {
   const [editOriginalNo, setEditOriginalNo] = useState<string>("");
   const [editError, setEditError] = useState<string | null>(null);
 
-  // Use this helper to show a toast. The messageId forces your Alert to re-mount
-  // so the same error/success toast re-appears every time it is triggered.
+  // Helper to show a toast. messageId forces Alert to re-mount on every trigger.
   const showMessage = (type: "success" | "error", text: string) => {
     setMessage({ type, text });
     setMessageId((id) => id + 1);
   };
 
+  // ==================== Product & Batch Filtering / Auto-Fill ====================
+
+  // 1. Filter Product list:
+  //    - If a Batch is already selected, show ONLY products belonging to that batch.
+  //    - Otherwise, show all unique products from the catalog.
+  const availableProductOptions = useMemo(() => {
+    const source = form.batchNumber
+      ? productBatchCatalog.filter(
+          (item) => item.batchNumber === form.batchNumber,
+        )
+      : productBatchCatalog;
+
+    return Array.from(new Set(source.map((item) => item.productName)));
+  }, [form.batchNumber]);
+
+  // 2. Filter Batch list:
+  //    - If a Product is already selected, show ONLY batches containing that product.
+  //    - Otherwise, show all unique batches from the catalog.
+  const availableBatchOptions = useMemo(() => {
+    const source = form.productName
+      ? productBatchCatalog.filter(
+          (item) => item.productName === form.productName,
+        )
+      : productBatchCatalog;
+
+    return Array.from(new Set(source.map((item) => item.batchNumber)));
+  }, [form.productName]);
+
+  // Helper to resolve matching catalog record and auto-fill readonly fields
+  const applyProductAndBatchSelection = (
+    nextProductName: string,
+    nextBatchNumber: string,
+  ) => {
+    const matched =
+      nextProductName && nextBatchNumber
+        ? productBatchCatalog.find(
+            (item) =>
+              item.productName === nextProductName &&
+              item.batchNumber === nextBatchNumber,
+          )
+        : undefined;
+
+    setForm((prev) => ({
+      ...prev,
+      productName: nextProductName,
+      batchNumber: nextBatchNumber,
+      // Auto-fill readonly fields when both product & batch match; clear otherwise
+      expiryDate: matched ? matched.expiryDate : "",
+      currentQty: matched ? String(matched.currentQty) : "",
+      unit: matched ? matched.unit : "",
+      purchaseRate: matched ? String(matched.purchaseRate) : "",
+      sellingPrice: matched ? String(matched.sellingPrice) : "",
+    }));
+    setMessage(null);
+  };
+
+  // When user selects/clears Product from dropdown
+  const handleProductSelect = (
+    _: React.SyntheticEvent,
+    newValue: string | null,
+  ) => {
+    const nextProduct = newValue ?? "";
+    applyProductAndBatchSelection(nextProduct, form.batchNumber);
+  };
+
+  // When user selects/clears Batch from dropdown
+  const handleBatchSelect = (
+    _: React.SyntheticEvent,
+    newValue: string | null,
+  ) => {
+    const nextBatch = newValue ?? "";
+    applyProductAndBatchSelection(form.productName, nextBatch);
+  };
+
+  // ==================== Vendor Purchase History & Matching ====================
+
   const history = useMemo(
-    () => (selectedSupplier ? (historyData[selectedSupplier.id] ?? []) : []),
-    [selectedSupplier, historyData],
+    () => (selectedvendor ? (historyData[selectedvendor.id] ?? []) : []),
+    [selectedvendor, historyData],
   );
+
   const matchingHistory = useMemo(() => {
     const query = form.productName.trim().toLocaleLowerCase();
     if (!query) return [];
@@ -247,13 +346,16 @@ export default function PurchaseInvoicePage() {
     }
     return matched;
   }, [form.productName, history]);
+
   const previousProductQty = matchingHistory.reduce(
     (sum, record) => sum + record.product.quantity,
     0,
   );
 
+  // ==================== Line & Invoice Totals ====================
+
   const qty = Number(form.quantity) || 0;
-  const rate = Number(form.purchaseRate) || 0;
+  const rate = Number(form.sellingPrice) || 0;
   const discount = Number(form.discount) || 0;
   const taxPercent = Number(form.tax) || 0;
   const lineSubTotal = Math.max(0, qty * rate - discount);
@@ -262,17 +364,17 @@ export default function PurchaseInvoicePage() {
   const itemsTotal = items.reduce((sum, item) => sum + item.grandTotal, 0);
   const paidAmount = Number(form.paidAmount) || 0;
   const grandTotal = itemsTotal;
-  const remainingBalance = Math.max(0, grandTotal - paidAmount);
 
-  // ---------- All invoices grid data (supplier filtered + search + sort) ----------
+  // ==================== All Invoices Grid (Filter + Search + Sort) ====================
+
   const allInvoices = useMemo(() => {
     const rows: InvoiceRecord[] = [];
-    for (const supplier of suppliers) {
-      for (const invoice of historyData[supplier.id] ?? []) {
+    for (const vendorItem of vendors) {
+      for (const invoice of historyData[vendorItem.id] ?? []) {
         rows.push({
           ...invoice,
-          supplierId: supplier.id,
-          supplierName: supplier.name,
+          vendorId: vendorItem.id,
+          vendorName: vendorItem.name,
         });
       }
     }
@@ -283,14 +385,14 @@ export default function PurchaseInvoicePage() {
     const query = invoiceSearch.trim().toLocaleLowerCase();
 
     let rows = allInvoices;
-    if (selectedSupplier) {
-      rows = rows.filter((row) => row.supplierId === selectedSupplier.id);
+    if (selectedvendor) {
+      rows = rows.filter((row) => row.vendorId === selectedvendor.id);
     }
     if (query) {
       rows = rows.filter((row) => {
         const haystack = [
           row.invoiceNo,
-          row.supplierName,
+          row.vendorName,
           row.date,
           ...row.products.map((product) => product.productName),
         ]
@@ -327,7 +429,9 @@ export default function PurchaseInvoicePage() {
         break;
     }
     return sorted;
-  }, [allInvoices, selectedSupplier, invoiceSearch, invoiceSort]);
+  }, [allInvoices, selectedvendor, invoiceSearch, invoiceSort]);
+
+  // ==================== Form & List Handlers ====================
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -337,29 +441,29 @@ export default function PurchaseInvoicePage() {
     setMessage(null);
   };
 
-  const handleSupplierChange = (
+  const handleVendorChange = (
     _: React.SyntheticEvent,
-    supplier: Supplier | null,
+    vendorItem: vendor | null,
   ) => {
-    if (items.length > 0 && supplier?.id !== selectedSupplier?.id) {
+    if (items.length > 0 && vendorItem?.id !== selectedvendor?.id) {
       showMessage(
         "error",
-        "Remove the current invoice items before changing supplier. One Purchase order can contain items from one supplier.",
+        "Remove the current invoice items before changing vendor. One Purchase order can contain items from one vendor.",
       );
       return;
     }
-    setSelectedSupplier(supplier);
+    setSelectedvendor(vendorItem);
     setForm((previous) => ({
       ...previous,
-      supplierName: supplier?.name ?? "",
-      supplierNtn: supplier?.ntn ?? "",
+      vendorName: vendorItem?.name ?? "",
+      vendorNtn: vendorItem?.ntn ?? "",
     }));
     setMessage(null);
   };
 
   const handleAddToList = () => {
-    if (!selectedSupplier) {
-      showMessage("error", "Please search and select a supplier first.");
+    if (!selectedvendor) {
+      showMessage("error", "Please search and select a vendor first.");
       return;
     }
     if (
@@ -394,8 +498,8 @@ export default function PurchaseInvoicePage() {
 
     const newItem: InvoiceItem = {
       id: Date.now(),
-      supplierName: selectedSupplier.name,
-      supplierNtn: selectedSupplier.ntn,
+      vendorName: selectedvendor.name,
+      vendorNtn: selectedvendor.ntn,
       invoiceNumber: form.invoiceNumber.trim(),
       invoiceDate: form.invoiceDate,
       productName: form.productName.trim(),
@@ -410,18 +514,24 @@ export default function PurchaseInvoicePage() {
       subTotal: lineSubTotal,
       grandTotal: lineGrandTotal,
     };
+
     setItems((previous) => [...previous, newItem]);
+
+    // Clear all product detail fields EXCEPT batchNumber
     setForm((previous) => ({
       ...previous,
       productName: "",
-      batchNumber: "",
+      // Keep previous.batchNumber intact
       expiryDate: "",
+      currentQty: "",
       quantity: "",
       unit: "",
       purchaseRate: "",
+      sellingPrice: "",
       discount: "",
       tax: "",
     }));
+
     showMessage("success", "Product added to purchase list.");
   };
 
@@ -430,16 +540,16 @@ export default function PurchaseInvoicePage() {
 
   const handleReset = () => {
     setForm({ ...emptyForm });
-    setSelectedSupplier(null);
+    setSelectedvendor(null);
     setItems([]);
     setMessage(null);
   };
 
   const handleSaveInvoice = () => {
-    if (!selectedSupplier || items.length === 0) {
+    if (!selectedvendor || items.length === 0) {
       showMessage(
         "error",
-        "Select a supplier and add at least one product to the list.",
+        "Select a vendor and add at least one product to the list.",
       );
       return;
     }
@@ -457,7 +567,8 @@ export default function PurchaseInvoicePage() {
     showMessage("success", "Purchase order saved successfully");
   };
 
-  // ---------- Edit invoice handlers ----------
+  // ==================== Edit Invoice Dialog Handlers ====================
+
   const openEditInvoice = (invoice: InvoiceRecord) => {
     setEditOriginalNo(invoice.invoiceNo);
     setEditError(null);
@@ -554,15 +665,15 @@ export default function PurchaseInvoicePage() {
       return;
     }
 
-    const supplierInvoices = historyData[editDraft.supplierId] ?? [];
-    const isDuplicate = supplierInvoices.some(
+    const vendorInvoices = historyData[editDraft.vendorId] ?? [];
+    const isDuplicate = vendorInvoices.some(
       (invoice) =>
         invoice.invoiceNo !== editOriginalNo &&
         invoice.invoiceNo.toLocaleLowerCase() === invoiceNo.toLocaleLowerCase(),
     );
     if (isDuplicate) {
       setEditError(
-        `Invoice number ${invoiceNo} already exists for ${editDraft.supplierName}.`,
+        `Invoice number ${invoiceNo} already exists for ${editDraft.vendorName}.`,
       );
       return;
     }
@@ -582,7 +693,6 @@ export default function PurchaseInvoicePage() {
     const updatedInvoice: PurchaseHistoryInvoice = {
       invoiceNo,
       date: editDraft.date,
-
       paidAmount: rawPaid,
       grandTotal: newGrandTotal,
       products,
@@ -590,7 +700,7 @@ export default function PurchaseInvoicePage() {
 
     setHistoryData((previous) => ({
       ...previous,
-      [editDraft.supplierId]: (previous[editDraft.supplierId] ?? []).map(
+      [editDraft.vendorId]: (previous[editDraft.vendorId] ?? []).map(
         (invoice) =>
           invoice.invoiceNo === editOriginalNo ? updatedInvoice : invoice,
       ),
@@ -606,6 +716,8 @@ export default function PurchaseInvoicePage() {
     ? Math.max(0, viewInvoice.grandTotal - viewInvoice.paidAmount)
     : 0;
 
+  // ==================== Render ====================
+
   return (
     <Box
       sx={{
@@ -616,6 +728,7 @@ export default function PurchaseInvoicePage() {
         pb: 4,
       }}
     >
+      {/* Page Header */}
       <Stack
         direction={{ xs: "column", sm: "row" }}
         justifyContent="space-between"
@@ -628,7 +741,7 @@ export default function PurchaseInvoicePage() {
             Purchase order
           </Typography>
           <Typography variant="body2" color="text.secondary" mt={0.5}>
-            Create supplier Purchase orders, add product details and manage
+            Create vendor Purchase orders, add product details and manage
             purchase payments.
           </Typography>
         </Box>
@@ -661,17 +774,18 @@ export default function PurchaseInvoicePage() {
           sx={{ p: { xs: 2, sm: 3, md: 3.5 }, "&:last-child": { pb: 3.5 } }}
         >
           <Stack spacing={3.5}>
+            {/* ==================== Section 1: Vendor & Invoice Info ==================== */}
             <Section
               icon={<BusinessOutlined />}
               title="Purchase order"
-              subtitle="Select a supplier and enter invoice details, products, quantities and payment information."
+              subtitle="Select a vendor and enter invoice details, products, quantities and payment information."
             >
               <Box sx={gridSx}>
                 <Autocomplete
                   fullWidth
-                  options={suppliers}
-                  value={selectedSupplier}
-                  onChange={handleSupplierChange}
+                  options={vendors}
+                  value={selectedvendor}
+                  onChange={handleVendorChange}
                   getOptionLabel={(option) => option.name}
                   isOptionEqualToValue={(option, value) =>
                     option.id === value.id
@@ -681,8 +795,8 @@ export default function PurchaseInvoicePage() {
                       {...params}
                       required
                       size="small"
-                      label="Supplier Name"
-                      placeholder="Search supplier by name..."
+                      label="vendor Name"
+                      placeholder="Search vendor by name..."
                       sx={fieldSx}
                     />
                   )}
@@ -705,28 +819,11 @@ export default function PurchaseInvoicePage() {
                 <TextField
                   fullWidth
                   size="small"
-                  label="Supplier NTN"
-                  value={form.supplierNtn}
-                  placeholder="Auto-filled after supplier selection"
+                  label="vendor NTN"
+                  value={form.vendorNtn}
+                  placeholder="Auto-filled after vendor selection"
                   disabled
-                  sx={{
-                    ...fieldSx,
-                    // input text dark rahe
-                    "& .MuiInputBase-input.Mui-disabled": {
-                      WebkitTextFillColor: "#1e293b",
-                      color: "#1e293b",
-                      opacity: 1,
-                    },
-                    // label thoda visible rahe (optional)
-                    "& .MuiInputLabel-root.Mui-disabled": {
-                      color: "#64748b",
-                    },
-                    // border halka rahe (optional)
-                    "& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline":
-                      {
-                        borderColor: "#e8edf3",
-                      },
-                  }}
+                  sx={readonlyFieldSx}
                 />
                 <TextField
                   fullWidth
@@ -752,7 +849,7 @@ export default function PurchaseInvoicePage() {
                   sx={fieldSx}
                 />
               </Box>
-              {selectedSupplier && (
+              {selectedvendor && (
                 <Box
                   sx={{
                     mt: 2,
@@ -768,7 +865,7 @@ export default function PurchaseInvoicePage() {
                     color="#1e40af"
                     mb={1}
                   >
-                    Selected Supplier Details
+                    Selected vendor Details
                   </Typography>
                   <Box
                     sx={{
@@ -781,16 +878,16 @@ export default function PurchaseInvoicePage() {
                     }}
                   >
                     <Typography variant="body2">
-                      <b>Supplier:</b> {selectedSupplier.name}
+                      <b>vendor:</b> {selectedvendor.name}
                     </Typography>
                     <Typography variant="body2">
-                      <b>NTN:</b> {selectedSupplier.ntn}
+                      <b>NTN:</b> {selectedvendor.ntn}
                     </Typography>
                     <Typography variant="body2">
-                      <b>Phone:</b> {selectedSupplier.phone}
+                      <b>Phone:</b> {selectedvendor.phone}
                     </Typography>
                     <Typography variant="body2">
-                      <b>Address:</b> {selectedSupplier.address}
+                      <b>Address:</b> {selectedvendor.address}
                     </Typography>
                   </Box>
                 </Box>
@@ -799,79 +896,77 @@ export default function PurchaseInvoicePage() {
 
             <Divider />
 
+            {/* ==================== Section 2: Product Details ==================== */}
             <Section
               icon={<Inventory2Outlined />}
               title="Product Details"
               subtitle="Enter one product at a time, then use Add to List to include it in this invoice."
             >
               <Box sx={gridSx}>
-                <TextField
-                  fullWidth
-                  required
-                  size="small"
-                  label="Product Name"
-                  name="productName"
-                  value={form.productName}
-                  onChange={handleChange}
-                  placeholder="Search or enter product name"
-                  sx={fieldSx}
-                />
-
+                {/* Searchable Product Dropdown (filtered by Batch if Batch is selected) */}
                 <Autocomplete
                   fullWidth
                   size="small"
-                  options={batchOptions}
-                  freeSolo
-                  value={
-                    batchOptions.find(
-                      (item) => item.batchNumber === form.batchNumber,
-                    ) ||
-                    (form.batchNumber
-                      ? {
-                          batchNumber: form.batchNumber,
-                        }
-                      : null)
+                  options={availableProductOptions}
+                  value={form.productName || null}
+                  onChange={handleProductSelect}
+                  noOptionsText={
+                    <Box
+                      onMouseDown={(e) => e.preventDefault()}
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 0.5,
+                        py: 0.5,
+                      }}
+                    >
+                      <Typography variant="body2" color="text.secondary">
+                        Product not found, plz create a product first.
+                      </Typography>
+                      <MuiLink
+                        href="http://localhost:3000/dashboard/product-order"
+                        underline="hover"
+                        sx={{
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: "#2563eb",
+                        }}
+                      >
+                        http://localhost:3000/dashboard/product-order
+                      </MuiLink>
+                    </Box>
                   }
-                  getOptionLabel={(option) =>
-                    typeof option === "string" ? option : option.batchNumber
-                  }
-                  onChange={(_, newValue) => {
-                    setForm((prev) => ({
-                      ...prev,
-                      batchNumber:
-                        typeof newValue === "string"
-                          ? newValue
-                          : newValue?.batchNumber || "",
-                    }));
-                  }}
-                  onInputChange={(_, newInputValue, reason) => {
-                    if (reason === "input") {
-                      setForm((prev) => ({
-                        ...prev,
-                        batchNumber: newInputValue,
-                      }));
-                    }
-                  }}
-                  renderOption={(props, option) => (
-                    <li {...props} key={option.batchNumber}>
-                      <div className="flex w-full flex-col py-1">
-                        <span className="font-semibold text-slate-800">
-                          {option.batchNumber}
-                        </span>
-                      </div>
-                    </li>
-                  )}
                   renderInput={(params) => (
                     <TextField
                       {...params}
                       required
-                      label="Batch Number"
-                      placeholder="Select or enter batch number"
+                      label="Product Name"
+                      placeholder="Search and select product"
                       sx={fieldSx}
                     />
                   )}
                 />
 
+                {/* Batch Dropdown (filtered by Product if Product is selected) */}
+                <Autocomplete
+                  fullWidth
+                  size="small"
+                  options={availableBatchOptions}
+                  value={form.batchNumber || null}
+                  onChange={handleBatchSelect}
+                  noOptionsText="No batch found"
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      required
+                      label="Batch Number"
+                      placeholder="Select batch number"
+                      sx={fieldSx}
+                    />
+                  )}
+                />
+
+                {/* Auto-filled Readonly: Expiry Date */}
                 <TextField
                   fullWidth
                   required
@@ -880,10 +975,74 @@ export default function PurchaseInvoicePage() {
                   label="Expiry Date"
                   name="expiryDate"
                   value={form.expiryDate}
-                  onChange={handleChange}
+                  disabled
                   InputLabelProps={{ shrink: true }}
-                  sx={fieldSx}
+                  sx={readonlyFieldSx}
                 />
+
+                {/* Auto-filled Readonly: Current Stock Quantity in Selected Batch */}
+                <TextField
+                  fullWidth
+                  size="small"
+                  type="number"
+                  label="Current Qty"
+                  name="currentQty"
+                  value={form.currentQty}
+                  placeholder="Auto-filled"
+                  disabled
+                  sx={readonlyFieldSx}
+                />
+
+                {/* Auto-filled Readonly: Unit */}
+                <TextField
+                  fullWidth
+                  required
+                  select
+                  size="small"
+                  label="Unit"
+                  name="unit"
+                  value={form.unit}
+                  disabled
+                  sx={readonlyFieldSx}
+                >
+                  <MenuItem value="" disabled>
+                    Select unit
+                  </MenuItem>
+                  {UNIT_OPTIONS.map((unit) => (
+                    <MenuItem key={unit} value={unit}>
+                      {unit}
+                    </MenuItem>
+                  ))}
+                </TextField>
+
+                {/* Auto-filled Readonly: Purchasing Price */}
+                <TextField
+                  fullWidth
+                  required
+                  size="small"
+                  type="number"
+                  label="Purchase Rate (PKR / Unit)"
+                  name="purchaseRate"
+                  value={form.purchaseRate}
+                  placeholder="Auto-filled"
+                  disabled
+                  sx={readonlyFieldSx}
+                />
+
+                {/* Auto-filled Readonly: Selling Price */}
+                <TextField
+                  fullWidth
+                  size="small"
+                  type="number"
+                  label="Selling Price (PKR)"
+                  name="sellingPrice"
+                  value={form.sellingPrice}
+                  placeholder="Auto-filled"
+                  disabled
+                  sx={readonlyFieldSx}
+                />
+
+                {/* Editable: Purchase Order Quantity */}
                 <TextField
                   fullWidth
                   required
@@ -897,39 +1056,8 @@ export default function PurchaseInvoicePage() {
                   inputProps={{ min: 1 }}
                   sx={fieldSx}
                 />
-                <TextField
-                  fullWidth
-                  required
-                  select
-                  size="small"
-                  label="Unit"
-                  name="unit"
-                  value={form.unit}
-                  onChange={handleChange}
-                  sx={fieldSx}
-                >
-                  <MenuItem value="" disabled>
-                    Select unit
-                  </MenuItem>
-                  {UNIT_OPTIONS.map((unit) => (
-                    <MenuItem key={unit} value={unit}>
-                      {unit}
-                    </MenuItem>
-                  ))}
-                </TextField>
-                <TextField
-                  fullWidth
-                  required
-                  size="small"
-                  type="number"
-                  label="Purchase Rate (PKR / Unit)"
-                  name="purchaseRate"
-                  value={form.purchaseRate}
-                  onChange={handleChange}
-                  placeholder="e.g. 125.50"
-                  inputProps={{ min: 0, step: "0.01" }}
-                  sx={fieldSx}
-                />
+
+                {/* Editable: Discount */}
                 <TextField
                   fullWidth
                   size="small"
@@ -942,6 +1070,8 @@ export default function PurchaseInvoicePage() {
                   inputProps={{ min: 0, step: "0.01" }}
                   sx={fieldSx}
                 />
+
+                {/* Editable: Tax / GST */}
                 <TextField
                   fullWidth
                   size="small"
@@ -956,15 +1086,18 @@ export default function PurchaseInvoicePage() {
                   sx={fieldSx}
                 />
               </Box>
-              {selectedSupplier && matchingHistory.length > 0 && (
+
+              {selectedvendor && matchingHistory.length > 0 && (
                 <MuiAlert severity="warning" sx={{ mt: 2 }}>
                   <b>Previous purchase check:</b> {form.productName} was
-                  previously purchased from {selectedSupplier.name} in{" "}
+                  previously purchased from {selectedvendor.name} in{" "}
                   {matchingHistory.length} record(s), total quantity{" "}
                   <b>{previousProductQty}</b>. Check current stock before adding
                   more.
                 </MuiAlert>
               )}
+
+              {/* Line Totals Summary */}
               <Box
                 sx={{
                   mt: 2,
@@ -1008,6 +1141,7 @@ export default function PurchaseInvoicePage() {
                   </Box>
                 </Box>
               </Box>
+
               <Stack
                 direction={{ xs: "column", sm: "row" }}
                 justifyContent="flex-end"
@@ -1034,19 +1168,19 @@ export default function PurchaseInvoicePage() {
 
             <Divider />
 
+            {/* ==================== Section 3: Purchase Previous History ==================== */}
             <Section
               icon={<HistoryOutlined />}
               title="Purchase Previous History"
-              subtitle="Review previous Purchase orders from this supplier and open an invoice to view complete details."
+              subtitle="Review previous Purchase orders from this vendor and open an invoice to view complete details."
             >
-              {!selectedSupplier ? (
+              {!selectedvendor ? (
                 <MuiAlert severity="info">
-                  Select a supplier to view their previous Purchase orders.
+                  Select a vendor to view their previous Purchase orders.
                 </MuiAlert>
               ) : history.length === 0 ? (
                 <MuiAlert severity="info">
-                  No previous purchase history found for {selectedSupplier.name}
-                  .
+                  No previous purchase history found for {selectedvendor.name}.
                 </MuiAlert>
               ) : (
                 <>
@@ -1057,7 +1191,7 @@ export default function PurchaseInvoicePage() {
                     mb={1.5}
                   >
                     <Typography fontWeight={700} fontSize={14}>
-                      {selectedSupplier.name}
+                      {selectedvendor.name}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {history.length} previous invoice(s)
@@ -1167,10 +1301,11 @@ export default function PurchaseInvoicePage() {
 
             <Divider />
 
+            {/* ==================== Section 4: Current Purchase List ==================== */}
             <Section
               icon={<ReceiptLongOutlined />}
               title="Purchase List"
-              subtitle="Products added to this invoice, each saved against the selected supplier."
+              subtitle="Products added to this invoice, each saved against the selected vendor."
             >
               {items.length === 0 ? (
                 <Box
@@ -1202,7 +1337,7 @@ export default function PurchaseInvoicePage() {
                     <TableHead>
                       <TableRow sx={{ bgcolor: "#f8fafc" }}>
                         {[
-                          "Supplier",
+                          "vendor",
                           "Invoice No.",
                           "Product",
                           "Batch",
@@ -1234,7 +1369,7 @@ export default function PurchaseInvoicePage() {
                       {items.map((item) => (
                         <TableRow key={item.id} hover>
                           <TableCell sx={{ fontSize: 11, minWidth: 140 }}>
-                            {item.supplierName}
+                            {item.vendorName}
                           </TableCell>
                           <TableCell
                             sx={{ fontSize: 11, whiteSpace: "nowrap" }}
@@ -1308,14 +1443,14 @@ export default function PurchaseInvoicePage() {
 
             <Divider />
 
-            {/* ---------- All Purchase Invoices grid (supplier filtered + search + sort + edit) ---------- */}
+            {/* ==================== Section 5: All Purchase Invoices ==================== */}
             <Section
               icon={<AccountBalanceWalletOutlined />}
               title="All Purchase Invoices"
               subtitle={
-                selectedSupplier
-                  ? `All invoices of ${selectedSupplier.name}. Clear the supplier filter to see invoices of every supplier.`
-                  : "Invoices of all suppliers. Select a supplier above to filter this grid."
+                selectedvendor
+                  ? `All invoices of ${selectedvendor.name}. Clear the vendor filter to see invoices of every vendor.`
+                  : "Invoices of all vendors. Select a vendor above to filter this grid."
               }
             >
               <Stack
@@ -1326,7 +1461,7 @@ export default function PurchaseInvoicePage() {
                 <TextField
                   fullWidth
                   size="small"
-                  placeholder="Search by invoice no., supplier, product or payment type..."
+                  placeholder="Search by invoice no., vendor, product or payment type..."
                   value={invoiceSearch}
                   onChange={(event) => setInvoiceSearch(event.target.value)}
                   sx={fieldSx}
@@ -1361,11 +1496,11 @@ export default function PurchaseInvoicePage() {
                 mb={1.5}
               >
                 <Typography fontWeight={700} fontSize={14}>
-                  {selectedSupplier ? selectedSupplier.name : "All suppliers"}
+                  {selectedvendor ? selectedvendor.name : "All vendors"}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   {visibleInvoices.length} invoice(s)
-                  {selectedSupplier ? " (supplier filter active)" : ""}
+                  {selectedvendor ? " (vendor filter active)" : ""}
                 </Typography>
               </Stack>
 
@@ -1386,10 +1521,9 @@ export default function PurchaseInvoicePage() {
                     <TableHead>
                       <TableRow sx={{ bgcolor: "#f8fafc" }}>
                         {[
-                          "Supplier",
+                          "vendor",
                           "Invoice No.",
                           "Date",
-
                           "Items",
                           "Grand Total",
                           "Paid",
@@ -1418,11 +1552,11 @@ export default function PurchaseInvoicePage() {
                         );
                         return (
                           <TableRow
-                            key={`${invoice.supplierId}-${invoice.invoiceNo}`}
+                            key={`${invoice.vendorId}-${invoice.invoiceNo}`}
                             hover
                           >
                             <TableCell sx={{ fontSize: 12, minWidth: 150 }}>
-                              {invoice.supplierName}
+                              {invoice.vendorName}
                             </TableCell>
                             <TableCell
                               sx={{ fontSize: 12, whiteSpace: "nowrap" }}
@@ -1434,7 +1568,6 @@ export default function PurchaseInvoicePage() {
                             >
                               {invoice.date}
                             </TableCell>
-
                             <TableCell sx={{ fontSize: 12 }}>
                               {invoice.products.length} item(s)
                             </TableCell>
@@ -1548,6 +1681,8 @@ export default function PurchaseInvoicePage() {
             )}
 
             <Divider />
+
+            {/* Footer Action Buttons */}
             <Stack
               direction={{ xs: "column-reverse", sm: "row" }}
               justifyContent="flex-end"
@@ -1598,7 +1733,7 @@ export default function PurchaseInvoicePage() {
         </CardContent>
       </Card>
 
-      {/* Previous invoice detail popup */}
+      {/* ==================== Previous Invoice Detail Popup ==================== */}
       <Dialog
         open={!!viewInvoice}
         onClose={() => setViewInvoice(null)}
@@ -1646,7 +1781,7 @@ export default function PurchaseInvoicePage() {
               </IconButton>
             </DialogTitle>
             <DialogContent dividers>
-              {selectedSupplier && (
+              {selectedvendor && (
                 <Box
                   sx={{
                     p: 2,
@@ -1662,7 +1797,7 @@ export default function PurchaseInvoicePage() {
                     color="#1e40af"
                     mb={1}
                   >
-                    Supplier Details
+                    vendor Details
                   </Typography>
                   <Box
                     sx={{
@@ -1675,16 +1810,16 @@ export default function PurchaseInvoicePage() {
                     }}
                   >
                     <Typography variant="body2">
-                      <b>Supplier:</b> {selectedSupplier.name}
+                      <b>vendor:</b> {selectedvendor.name}
                     </Typography>
                     <Typography variant="body2">
-                      <b>NTN:</b> {selectedSupplier.ntn}
+                      <b>NTN:</b> {selectedvendor.ntn}
                     </Typography>
                     <Typography variant="body2">
-                      <b>Phone:</b> {selectedSupplier.phone}
+                      <b>Phone:</b> {selectedvendor.phone}
                     </Typography>
                     <Typography variant="body2">
-                      <b>Address:</b> {selectedSupplier.address}
+                      <b>Address:</b> {selectedvendor.address}
                     </Typography>
                   </Box>
                 </Box>
@@ -1863,7 +1998,7 @@ export default function PurchaseInvoicePage() {
         )}
       </Dialog>
 
-      {/* Edit invoice popup */}
+      {/* ==================== Edit Invoice Popup ==================== */}
       <Dialog
         open={!!editDraft}
         onClose={closeEditInvoice}
@@ -1887,9 +2022,8 @@ export default function PurchaseInvoicePage() {
                   Edit Invoice {editDraft.invoiceNo || "-"}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  {editDraft.supplierName} · NTN{" "}
-                  {suppliers.find((s) => s.id === editDraft.supplierId)?.ntn ??
-                    "-"}
+                  {editDraft.vendorName} · NTN{" "}
+                  {vendors.find((s) => s.id === editDraft.vendorId)?.ntn ?? "-"}
                 </Typography>
               </Box>
               <IconButton
@@ -1948,8 +2082,8 @@ export default function PurchaseInvoicePage() {
                 <TextField
                   fullWidth
                   size="small"
-                  label="Supplier"
-                  value={editDraft.supplierName}
+                  label="vendor"
+                  value={editDraft.vendorName}
                   disabled
                   sx={fieldSx}
                 />

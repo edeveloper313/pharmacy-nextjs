@@ -9,7 +9,7 @@ import {
   IconTruck,
   IconShoppingBag,
   IconUserPlus,
-  IconHeartHandshake
+  IconHeartHandshake,
 } from "@tabler/icons-react";
 
 import { uniqueId } from "lodash";
@@ -32,7 +32,7 @@ const Menuitems = [
   {
     id: uniqueId(),
     title: "Vendor",
-    icon: IconHeartHandshake ,
+    icon: IconHeartHandshake,
     href: "/dashboard/vendor",
   },
 
@@ -70,23 +70,23 @@ const Menuitems = [
     navlabel: true,
     subheader: "PURCHASE MANAGEMENT",
   },
-  {
-    id: uniqueId(),
-    title: "Supplier",
-    icon: IconTruck,
-    href: "/dashboard/supplier",
-  },
-    {
-    id: uniqueId(),
-    title: "Purchase Order Status",
-    icon: IconChartBar,
-    href: "/dashboard/purchase-order-status",
-  },
+  // {
+  //   id: uniqueId(),
+  //   title: "Supplier",
+  //   icon: IconTruck,
+  //   href: "/dashboard/supplier",
+  // },
   {
     id: uniqueId(),
     title: "Purchase Order",
     icon: IconUserPlus,
     href: "/dashboard/purchase-order",
+  },
+  {
+    id: uniqueId(),
+    title: "Purchase Order Status",
+    icon: IconChartBar,
+    href: "/dashboard/purchase-order-status",
   },
 
   // =========================
