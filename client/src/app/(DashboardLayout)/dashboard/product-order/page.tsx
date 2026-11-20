@@ -75,6 +75,19 @@ const getStoredGenerics = (): StoredGeneric[] => {
 };
 
 // ============================================
+// UNIT OPTIONS
+// ============================================
+const UNIT_OPTIONS = [
+  "Piece",
+  "Strip",
+  "Box",
+  "Pack",
+  "Bottle",
+  "Vial",
+  "Carton",
+];
+
+// ============================================
 // INITIAL DATA - PRODUCTS
 // ============================================
 const initialProducts = [
@@ -83,6 +96,7 @@ const initialProducts = [
     name: "Panadol 500mg Tablets",
     generic: "Paracetamol",
     category: "OTC Medicines",
+    unit: "Box",
     price: 25.0,
     stock: 145,
     status: "In Stock",
@@ -95,6 +109,7 @@ const initialProducts = [
     name: "Augmentin 625mg Tablets",
     generic: "Amoxicillin + Clavulanic Acid",
     category: "Antibiotics",
+    unit: "Pack",
     price: 450.0,
     stock: 32,
     status: "In Stock",
@@ -107,6 +122,7 @@ const initialProducts = [
     name: "Vitamin C 500mg Tablets",
     generic: "Ascorbic Acid",
     category: "Vitamins & Supplements",
+    unit: "Bottle",
     price: 350.0,
     stock: 0,
     status: "Out of Stock",
@@ -119,6 +135,7 @@ const initialProducts = [
     name: "Digital Blood Pressure Monitor",
     generic: "Automatic BP Monitor",
     category: "Medical Devices",
+    unit: "Piece",
     price: 4500.0,
     stock: 78,
     status: "In Stock",
@@ -131,6 +148,7 @@ const initialProducts = [
     name: "Surgical Disposable Gloves",
     generic: "Latex Examination Gloves",
     category: "Surgical Supplies",
+    unit: "Box",
     price: 850.0,
     stock: 12,
     status: "Low Stock",
@@ -142,6 +160,7 @@ const initialProducts = [
     name: "Digital Thermometer",
     generic: "Digital Clinical Thermometer",
     category: "Medical Devices",
+    unit: "Piece",
     price: 650.0,
     stock: 56,
     status: "In Stock",
@@ -154,6 +173,7 @@ const emptyForm = {
   name: "",
   generic: "",
   category: "OTC Medicines",
+  unit: "",
   price: "",
   stock: "",
   description: "",
@@ -246,9 +266,11 @@ export default function ProductPage() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const [alert, setAlert] = useState<
-    { id: number; type: AlertColor; message: string } | null
-  >(null);
+  const [alert, setAlert] = useState<{
+    id: number;
+    type: AlertColor;
+    message: string;
+  } | null>(null);
 
   const showAlert = (type: AlertColor, message: string) => {
     setAlert({ id: Date.now(), type, message });
@@ -300,11 +322,16 @@ export default function ProductPage() {
   const filteredProducts = useMemo(() => {
     const result = products.filter((p) => {
       const keyword = search.toLowerCase();
-      const searchMatch = [p.name, p.generic, p.category, p.description].some(
-        (value) =>
-          String(value || "")
-            .toLowerCase()
-            .includes(keyword),
+      const searchMatch = [
+        p.name,
+        p.generic,
+        p.category,
+        p.unit,
+        p.description,
+      ].some((value) =>
+        String(value || "")
+          .toLowerCase()
+          .includes(keyword),
       );
 
       const genericMatch =
@@ -352,6 +379,7 @@ export default function ProductPage() {
     setForm({
       ...item,
       generic: item.generic === "No Generic Name" ? "" : item.generic,
+      unit: item.unit ?? "",
       price: String(item.price),
       stock: String(item.stock),
     });
@@ -364,13 +392,11 @@ export default function ProductPage() {
   };
 
   const handleSave = () => {
-    const requiredFields = ["name","generic","category"];
+    // Unit is required along with name, generic, and category
+    const requiredFields = ["name", "generic", "category", "unit"];
     if (requiredFields.some((key) => String(form[key] ?? "").trim() === "")) {
       return showAlert("error", "Please fill all required fields.");
     }
-    
-
- 
 
     const stockNum = Number(form.stock);
     const computedStatus =
@@ -384,6 +410,7 @@ export default function ProductPage() {
       ...form,
       name: form.name.trim(),
       generic: form.generic.trim() || "No Generic Name",
+      unit: form.unit.trim(),
       price: Number(form.price),
       stock: stockNum,
       status: computedStatus,
@@ -431,6 +458,7 @@ export default function ProductPage() {
     { id: "name", label: "Product" },
     { id: "generic", label: "Generic" },
     { id: "category", label: "Category" },
+    { id: "unit", label: "Unit" },
     { id: "price", label: "Price" },
     { id: "stock", label: "Stock" },
     { id: "status", label: "Status" },
@@ -584,7 +612,7 @@ export default function ProductPage() {
               <MenuItem value="Other">Other</MenuItem>
             </TextField>
 
-            <TextField
+            {/* <TextField
               fullWidth
               size="small"
               label="Price ($) "
@@ -593,9 +621,9 @@ export default function ProductPage() {
               value={form.price}
               onChange={handleChange}
               inputProps={{ min: 0, step: "0.01" }}
-            />
+            /> */}
 
-            <TextField
+            {/* <TextField
               fullWidth
               size="small"
               label="Stock Quantity"
@@ -604,7 +632,28 @@ export default function ProductPage() {
               value={form.stock}
               onChange={handleChange}
               inputProps={{ min: 0 }}
-            />
+            /> */}
+
+            {/* Required Unit Field */}
+            <TextField
+              fullWidth
+              required
+              size="small"
+              select
+              label="Unit *"
+              name="unit"
+              value={form.unit}
+              onChange={handleChange}
+            >
+              <MenuItem value="">
+                <em>Select Unit</em>
+              </MenuItem>
+              {UNIT_OPTIONS.map((unitOption) => (
+                <MenuItem key={unitOption} value={unitOption}>
+                  {unitOption}
+                </MenuItem>
+              ))}
+            </TextField>
 
             <TextField
               fullWidth
@@ -892,6 +941,15 @@ export default function ProductPage() {
                     </TableCell>
 
                     <TableCell>
+                      <Chip
+                        size="small"
+                        label={item.unit}
+                        variant="outlined"
+                        sx={{ fontWeight: 600 }}
+                      />
+                    </TableCell>
+
+                    <TableCell>
                       <Typography fontWeight={700}>
                         ${item.price.toFixed(2)}
                       </Typography>
@@ -938,7 +996,7 @@ export default function ProductPage() {
 
                 {filteredProducts.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} align="center" sx={{ py: 6 }}>
+                    <TableCell colSpan={9} align="center" sx={{ py: 6 }}>
                       <Inventory2Outlined
                         sx={{ fontSize: 45, color: "#94a3b8", mb: 1 }}
                       />
@@ -1075,6 +1133,27 @@ export default function ProductPage() {
                 Healthcare & Wellness
               </MenuItem>
               <MenuItem value="Other">Other</MenuItem>
+            </TextField>
+
+            {/* Required Unit Field in Edit Dialog */}
+            <TextField
+              fullWidth
+              required
+              size="small"
+              select
+              label="Unit *"
+              name="unit"
+              value={form.unit}
+              onChange={handleChange}
+            >
+              <MenuItem value="">
+                <em>Select Unit</em>
+              </MenuItem>
+              {UNIT_OPTIONS.map((unitOption) => (
+                <MenuItem key={unitOption} value={unitOption}>
+                  {unitOption}
+                </MenuItem>
+              ))}
             </TextField>
 
             <TextField

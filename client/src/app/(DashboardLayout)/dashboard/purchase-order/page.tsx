@@ -355,7 +355,7 @@ export default function PurchaseInvoicePage() {
   // ==================== Line & Invoice Totals ====================
 
   const qty = Number(form.quantity) || 0;
-  const rate = Number(form.sellingPrice) || 0;
+  const rate = Number(form.purchaseRate) || 0;
   const discount = Number(form.discount) || 0;
   const taxPercent = Number(form.tax) || 0;
   const lineSubTotal = Math.max(0, qty * rate - discount);
@@ -527,7 +527,7 @@ export default function PurchaseInvoicePage() {
       quantity: "",
       unit: "",
       purchaseRate: "",
-      sellingPrice: "",
+
       discount: "",
       tax: "",
     }));
@@ -1024,19 +1024,6 @@ export default function PurchaseInvoicePage() {
                   label="Purchase Rate (PKR / Unit)"
                   name="purchaseRate"
                   value={form.purchaseRate}
-                  placeholder="Auto-filled"
-                  disabled
-                  sx={readonlyFieldSx}
-                />
-
-                {/* Auto-filled Readonly: Selling Price */}
-                <TextField
-                  fullWidth
-                  size="small"
-                  type="number"
-                  label="Selling Price (PKR)"
-                  name="sellingPrice"
-                  value={form.sellingPrice}
                   placeholder="Auto-filled"
                   disabled
                   sx={readonlyFieldSx}
