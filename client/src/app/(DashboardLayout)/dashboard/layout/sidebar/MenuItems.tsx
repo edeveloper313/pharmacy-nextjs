@@ -9,6 +9,7 @@ import {
   IconTruck,
   IconHistory,
   IconUserPlus,
+  IconHeartHandshake
 } from "@tabler/icons-react";
 
 import { uniqueId } from "lodash";
@@ -26,6 +27,13 @@ const Menuitems = [
     title: "Dashboard",
     icon: IconLayoutDashboard,
     href: "/dashboard",
+  },
+
+  {
+    id: uniqueId(),
+    title: "Vendor",
+    icon: IconHeartHandshake ,
+    href: "/dashboard/vendor",
   },
 
   // =========================

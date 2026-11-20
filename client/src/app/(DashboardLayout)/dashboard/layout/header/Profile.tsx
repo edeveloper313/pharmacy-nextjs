@@ -231,7 +231,7 @@ const Profile = () => {
 
     setGenerics(updatedData);
 
-    setGenericId("");
+    setGenericId(generateGenericId());
     setGenericName("");
 
     setNotice({
@@ -288,7 +288,7 @@ const Profile = () => {
 
     setCustomerTypes(updatedData);
 
-    setCustomerTypeId("");
+    setCustomerTypeId(generateCustomerTypeId());
     setCustomerTypeName("");
 
     setNotice({
@@ -319,7 +319,21 @@ const Profile = () => {
       boxShadow: "none",
     },
   };
+  const generateCustomerTypeId = () => {
+    return `CT-${Math.floor(100000 + Math.random() * 900000)}`;
+  };
 
+  const generateGenericId = () => {
+    return `GEN-${Math.floor(100000 + Math.random() * 900000)}`;
+  };
+
+  useEffect(() => {
+    setCustomerTypeId(generateCustomerTypeId());
+  }, []);
+
+  useEffect(() => {
+    setGenericId(generateGenericId());
+  }, []);
   // --------------------------------------------------
   // UI
   // --------------------------------------------------
@@ -556,9 +570,9 @@ const Profile = () => {
                   required
                   size="small"
                   label="Generic ID"
-                  placeholder="e.g. GEN-001"
+                  placeholder="Auto Generated"
                   value={genericId}
-                  onChange={(e) => setGenericId(e.target.value)}
+                  InputProps={{ readOnly: true }}
                   sx={fieldSx}
                 />
 
@@ -634,15 +648,14 @@ const Profile = () => {
                     Enter the customer type details below.
                   </Typography>
                 </Box>
-
                 <TextField
                   fullWidth
                   required
                   size="small"
                   label="Customer Type ID"
-                  placeholder="e.g. CT-001"
+                  placeholder="Auto Generated"
                   value={customerTypeId}
-                  onChange={(e) => setCustomerTypeId(e.target.value)}
+                  InputProps={{ readOnly: true }}
                   sx={fieldSx}
                 />
 
