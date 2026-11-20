@@ -122,7 +122,7 @@ function StatCard({ label, value, color = "#1e293b" }: StatCardProps) {
 }
 
 /* =========================================================================
-   PAGE — Sales Order Status (with cascading filters)
+   PAGE — Purchase Orders Status (with cascading filters)
    ========================================================================= */
 
 export default function SalesOrderStatusPage() {
@@ -229,7 +229,7 @@ export default function SalesOrderStatusPage() {
       return;
     }
     // Demo only — connect to your export/download API.
-    console.log("Export Sales Order Status:", filteredOrders);
+    console.log("Export Purchase Orders Status:", filteredOrders);
     showMessage("success", `Exporting ${filteredOrders.length} order(s) (demo).`);
   };
 
@@ -246,7 +246,7 @@ export default function SalesOrderStatusPage() {
         mb={3}
       >
         <Box>
-          <Typography variant="h5" fontWeight={800} color="#1e293b">Sales Order Status</Typography>
+          <Typography variant="h5" fontWeight={800} color="#1e293b">Purchase Orders Status</Typography>
           <Typography variant="body2" color="text.secondary" mt={0.5}>
             Track total order quantity and pending quantity across hospitals, clients and company groups.
           </Typography>

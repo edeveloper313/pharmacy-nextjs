@@ -7,7 +7,7 @@ import {
   IconChartBar,
   IconAddressBook,
   IconTruck,
-  IconHistory,
+  IconShoppingBag,
   IconUserPlus,
   IconHeartHandshake
 } from "@tabler/icons-react";
@@ -49,23 +49,18 @@ const Menuitems = [
     icon: IconPackage,
     href: "/dashboard/product-order",
   },
+  // {
+  //   id: uniqueId(),
+  //   title: "Sale Order Entry",
+  //   icon: IconShoppingCart,
+  //   href: "/dashboard/sale-order-entry",
+  // },
+
   {
     id: uniqueId(),
-    title: "Sale Order Entry",
-    icon: IconShoppingCart,
-    href: "/dashboard/sale-order-entry",
-  },
-  {
-    id: uniqueId(),
-    title: "Sales Order Status",
-    icon: IconChartBar,
-    href: "/dashboard/sales-order-status",
-  },
-  {
-    id: uniqueId(),
-    title: "Product Order History",
-    icon: IconHistory,
-    href: "/dashboard/porduct-order-history",
+    title: "All Products",
+    icon: IconShoppingBag,
+    href: "/dashboard/all-products",
   },
 
   // =========================
@@ -80,6 +75,12 @@ const Menuitems = [
     title: "Supplier",
     icon: IconTruck,
     href: "/dashboard/supplier",
+  },
+    {
+    id: uniqueId(),
+    title: "Purchase Order Status",
+    icon: IconChartBar,
+    href: "/dashboard/purchase-order-status",
   },
   {
     id: uniqueId(),
