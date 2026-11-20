@@ -31,6 +31,7 @@ import {
   IconDatabase,
   IconPackage,
   IconUsers,
+  IconBuildingStore,
   IconX,
   IconDeviceFloppy,
 } from "@tabler/icons-react";
@@ -41,6 +42,7 @@ import {
 
 export const GENERIC_STORAGE_KEY = "dashboard_generics";
 export const CUSTOMER_TYPE_STORAGE_KEY = "dashboard_customer_types";
+export const VENDOR_TYPE_STORAGE_KEY = "dashboard_vendor_types";
 
 // --------------------------------------------------
 // TYPES
@@ -56,8 +58,13 @@ export type CustomerType = {
   name: string;
 };
 
+export type VendorType = {
+  id: string;
+  name: string;
+};
+
 // --------------------------------------------------
-// STORAGE HELPER
+// STORAGE & ID HELPERS
 // --------------------------------------------------
 
 export function getStoredData<T>(key: string): T[] {
@@ -77,6 +84,15 @@ export function getStoredData<T>(key: string): T[] {
   }
 }
 
+const generateGenericId = () =>
+  `GEN-${Math.floor(100000 + Math.random() * 900000)}`;
+
+const generateCustomerTypeId = () =>
+  `CT-${Math.floor(100000 + Math.random() * 900000)}`;
+
+const generateVendorTypeId = () =>
+  `VT-${Math.floor(100000 + Math.random() * 900000)}`;
+
 // --------------------------------------------------
 // PROFILE COMPONENT
 // --------------------------------------------------
@@ -89,13 +105,14 @@ const Profile = () => {
   const [openModal, setOpenModal] = useState(false);
 
   // Active form
-  const [activeForm, setActiveForm] = useState<"generic" | "customer">(
-    "generic",
-  );
+  const [activeForm, setActiveForm] = useState<
+    "generic" | "customer" | "vendor"
+  >("generic");
 
   // Records
   const [generics, setGenerics] = useState<Generic[]>([]);
   const [customerTypes, setCustomerTypes] = useState<CustomerType[]>([]);
+  const [vendorTypes, setVendorTypes] = useState<VendorType[]>([]);
 
   // Generic form
   const [genericId, setGenericId] = useState("");
@@ -105,6 +122,10 @@ const Profile = () => {
   const [customerTypeId, setCustomerTypeId] = useState("");
   const [customerTypeName, setCustomerTypeName] = useState("");
 
+  // Vendor type form
+  const [vendorTypeId, setVendorTypeId] = useState("");
+  const [vendorTypeName, setVendorTypeName] = useState("");
+
   // Notifications
   const [notice, setNotice] = useState<{
     type: "success" | "error";
@@ -112,14 +133,20 @@ const Profile = () => {
   } | null>(null);
 
   // --------------------------------------------------
-  // LOAD LOCAL STORAGE
+  // LOAD LOCAL STORAGE & INITIAL IDS
   // --------------------------------------------------
+
+  useEffect(() => {
+    setGenericId(generateGenericId());
+    setCustomerTypeId(generateCustomerTypeId());
+    setVendorTypeId(generateVendorTypeId());
+  }, []);
 
   useEffect(() => {
     const loadData = () => {
       setGenerics(getStoredData<Generic>(GENERIC_STORAGE_KEY));
-
       setCustomerTypes(getStoredData<CustomerType>(CUSTOMER_TYPE_STORAGE_KEY));
+      setVendorTypes(getStoredData<VendorType>(VENDOR_TYPE_STORAGE_KEY));
     };
 
     loadData();
@@ -298,6 +325,63 @@ const Profile = () => {
   };
 
   // --------------------------------------------------
+  // SAVE VENDOR TYPE
+  // --------------------------------------------------
+
+  const handleSaveVendorType = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const id = vendorTypeId.trim();
+    const name = vendorTypeName.trim();
+
+    if (!id || !name) {
+      setNotice({
+        type: "error",
+        text: "Please enter Vendor Type ID and Name.",
+      });
+      return;
+    }
+
+    const duplicateId = vendorTypes.some(
+      (item) => item.id.toLowerCase() === id.toLowerCase(),
+    );
+
+    const duplicateName = vendorTypes.some(
+      (item) => item.name.toLowerCase() === name.toLowerCase(),
+    );
+
+    if (duplicateId) {
+      setNotice({
+        type: "error",
+        text: "This Vendor Type ID already exists.",
+      });
+      return;
+    }
+
+    if (duplicateName) {
+      setNotice({
+        type: "error",
+        text: "This Vendor Type already exists.",
+      });
+      return;
+    }
+
+    const updatedData = [...vendorTypes, { id, name }];
+
+    if (!saveToStorage(VENDOR_TYPE_STORAGE_KEY, updatedData)) return;
+
+    setVendorTypes(updatedData);
+
+    setVendorTypeId(generateVendorTypeId());
+    setVendorTypeName("");
+
+    setNotice({
+      type: "success",
+      text: "Vendor Type saved successfully!",
+    });
+  };
+
+  // --------------------------------------------------
   // SHARED STYLES
   // --------------------------------------------------
 
@@ -319,21 +403,13 @@ const Profile = () => {
       boxShadow: "none",
     },
   };
-  const generateCustomerTypeId = () => {
-    return `CT-${Math.floor(100000 + Math.random() * 900000)}`;
+
+  const tabButtonSx = {
+    borderRadius: 2,
+    textTransform: "none" as const,
+    px: 1.5,
   };
 
-  const generateGenericId = () => {
-    return `GEN-${Math.floor(100000 + Math.random() * 900000)}`;
-  };
-
-  useEffect(() => {
-    setCustomerTypeId(generateCustomerTypeId());
-  }, []);
-
-  useEffect(() => {
-    setGenericId(generateGenericId());
-  }, []);
   // --------------------------------------------------
   // UI
   // --------------------------------------------------
@@ -455,7 +531,7 @@ const Profile = () => {
         open={openModal}
         onClose={handleCloseModal}
         fullWidth
-        maxWidth="sm"
+        maxWidth="md"
         scroll="paper"
         aria-labelledby="manage-data-title"
         PaperProps={{
@@ -511,11 +587,8 @@ const Profile = () => {
               }}
               sx={
                 activeForm === "generic"
-                  ? primaryButtonSx
-                  : {
-                      borderRadius: 2,
-                      textTransform: "none",
-                    }
+                  ? { ...primaryButtonSx, px: 1.5 }
+                  : tabButtonSx
               }
             >
               Create Generic
@@ -531,14 +604,28 @@ const Profile = () => {
               }}
               sx={
                 activeForm === "customer"
-                  ? primaryButtonSx
-                  : {
-                      borderRadius: 2,
-                      textTransform: "none",
-                    }
+                  ? { ...primaryButtonSx, px: 1.5 }
+                  : tabButtonSx
               }
             >
               Create Customer Type
+            </Button>
+
+            <Button
+              fullWidth
+              variant={activeForm === "vendor" ? "contained" : "outlined"}
+              startIcon={<IconBuildingStore size={19} />}
+              onClick={() => {
+                setActiveForm("vendor");
+                setNotice(null);
+              }}
+              sx={
+                activeForm === "vendor"
+                  ? { ...primaryButtonSx, px: 1.5 }
+                  : tabButtonSx
+              }
+            >
+              Create Vendor Type
             </Button>
           </Stack>
 
@@ -648,6 +735,7 @@ const Profile = () => {
                     Enter the customer type details below.
                   </Typography>
                 </Box>
+
                 <TextField
                   fullWidth
                   required
@@ -705,6 +793,90 @@ const Profile = () => {
                     sx={primaryButtonSx}
                   >
                     Save Customer Type
+                  </Button>
+                </Box>
+              </Stack>
+            </Box>
+          )}
+
+          {/* =====================================
+              VENDOR TYPE FORM
+          ===================================== */}
+
+          {activeForm === "vendor" && (
+            <Box
+              component="form"
+              id="vendor-type-form"
+              onSubmit={handleSaveVendorType}
+            >
+              <Stack spacing={2.5}>
+                <Box>
+                  <Typography fontWeight={700} color="#2563eb" mb={0.5}>
+                    Vendor Type Information
+                  </Typography>
+
+                  <Typography variant="caption" color="text.secondary">
+                    Enter the vendor type details below.
+                  </Typography>
+                </Box>
+
+                <TextField
+                  fullWidth
+                  required
+                  size="small"
+                  label="Vendor Type ID"
+                  placeholder="Auto Generated"
+                  value={vendorTypeId}
+                  InputProps={{ readOnly: true }}
+                  sx={fieldSx}
+                />
+
+                <Autocomplete
+                  freeSolo
+                  fullWidth
+                  options={vendorTypes.map((item) => item.name)}
+                  value={vendorTypeName}
+                  onChange={(_, value) =>
+                    setVendorTypeName(typeof value === "string" ? value : "")
+                  }
+                  onInputChange={(_, value) => setVendorTypeName(value)}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      required
+                      size="small"
+                      label="Vendor Type"
+                      placeholder="Search or enter vendor type..."
+                      helperText={
+                        vendorTypes.length
+                          ? `${vendorTypes.length} existing vendor types available`
+                          : "Enter a new vendor type"
+                      }
+                      sx={fieldSx}
+                    />
+                  )}
+                />
+
+                <Divider />
+
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  flexWrap="wrap"
+                  gap={1}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    Total Vendor Types: {vendorTypes.length}
+                  </Typography>
+
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    startIcon={<IconDeviceFloppy size={18} />}
+                    sx={primaryButtonSx}
+                  >
+                    Save Vendor Type
                   </Button>
                 </Box>
               </Stack>

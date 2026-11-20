@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import {
   Box,
@@ -34,7 +34,6 @@ import {
   Avatar,
   AlertColor,
 } from "@mui/material";
-
 import {
   Add,
   Search,
@@ -50,6 +49,30 @@ import {
 import Alert from "@/app/components/Alert";
 
 import { AlertState } from "@/app/components/types/types";
+
+// ============================================
+// GENERIC LOOKUP STORAGE
+// ============================================
+const GENERIC_STORAGE_KEY = "dashboard_generics";
+
+type StoredGeneric = {
+  id: string;
+  name: string;
+};
+
+const getStoredGenerics = (): StoredGeneric[] => {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const data = localStorage.getItem(GENERIC_STORAGE_KEY);
+    if (!data) return [];
+    const parsed = JSON.parse(data);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error("LocalStorage read error:", error);
+    return [];
+  }
+};
 
 // ============================================
 // INITIAL DATA - PRODUCTS
@@ -135,6 +158,7 @@ const emptyForm = {
   stock: "",
   description: "",
 };
+
 // ============================================
 // SORTING FUNCTIONS
 // ============================================
@@ -206,28 +230,69 @@ const getCategoryColor = (category) => {
 // ============================================
 export default function ProductPage() {
   const [products, setProducts] = useState(initialProducts);
+  const [storedGenerics, setStoredGenerics] = useState<StoredGeneric[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const [search, setSearch] = useState("");
+  const [genericFilter, setGenericFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
   const [order, setOrder] = useState<"asc" | "desc">("desc");
-
   const [orderBy, setOrderBy] = useState("createdAt");
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-const [alert, setAlert] = useState<
-  { id: number; type: AlertColor; message: string } | null
->(null);
+  const [alert, setAlert] = useState<
+    { id: number; type: AlertColor; message: string } | null
+  >(null);
 
-const showAlert = (type: AlertColor, message: string) => {
-  setAlert({ id: Date.now(), type, message });
-};
+  const showAlert = (type: AlertColor, message: string) => {
+    setAlert({ id: Date.now(), type, message });
+  };
+
+  // ==========================================
+  // LOAD GENERICS FROM LOCAL STORAGE
+  // ==========================================
+  useEffect(() => {
+    const loadGenerics = () => {
+      setStoredGenerics(getStoredGenerics());
+    };
+
+    loadGenerics();
+
+    window.addEventListener("storage", loadGenerics);
+    window.addEventListener("dashboard-lookups-updated", loadGenerics);
+
+    return () => {
+      window.removeEventListener("storage", loadGenerics);
+      window.removeEventListener("dashboard-lookups-updated", loadGenerics);
+    };
+  }, []);
+
+  const genericOptions = useMemo(() => {
+    const seen = new Set<string>();
+    const options: string[] = [];
+
+    const addOption = (val?: string) => {
+      const trimmed = String(val || "").trim();
+      if (!trimmed || trimmed === "No Generic Name") return;
+      const key = trimmed.toLowerCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+        options.push(trimmed);
+      }
+    };
+
+    storedGenerics.forEach((g) => addOption(g.name));
+    products.forEach((p) => addOption(p.generic));
+    addOption(form.generic);
+
+    return options;
+  }, [storedGenerics, products, form.generic]);
 
   // ==========================================
   // FILTERING & SORTING
@@ -242,15 +307,25 @@ const showAlert = (type: AlertColor, message: string) => {
             .includes(keyword),
       );
 
+      const genericMatch =
+        genericFilter === "all" || p.generic === genericFilter;
       const categoryMatch =
         categoryFilter === "all" || p.category === categoryFilter;
       const statusMatch = statusFilter === "all" || p.status === statusFilter;
 
-      return searchMatch && categoryMatch && statusMatch;
+      return searchMatch && genericMatch && categoryMatch && statusMatch;
     });
 
     return [...result].sort(getComparator(order, orderBy));
-  }, [products, search, categoryFilter, statusFilter, order, orderBy]);
+  }, [
+    products,
+    search,
+    genericFilter,
+    categoryFilter,
+    statusFilter,
+    order,
+    orderBy,
+  ]);
 
   const paginatedProducts = filteredProducts.slice(
     page * rowsPerPage,
@@ -276,6 +351,7 @@ const showAlert = (type: AlertColor, message: string) => {
     setEditingId(item.id);
     setForm({
       ...item,
+      generic: item.generic === "No Generic Name" ? "" : item.generic,
       price: String(item.price),
       stock: String(item.stock),
     });
@@ -288,22 +364,14 @@ const showAlert = (type: AlertColor, message: string) => {
   };
 
   const handleSave = () => {
-    const requiredFields = ["name", "price", "stock"];
+    const requiredFields = ["name","generic","category"];
     if (requiredFields.some((key) => String(form[key] ?? "").trim() === "")) {
       return showAlert("error", "Please fill all required fields.");
     }
-
-    if (Number(form.price) < 0) {
-      return showAlert("error", "Price cannot be negative.");
-    }
-
-    if (Number(form.stock) < 0) {
-      return showAlert("error", "Stock cannot be negative.");
-    }
-if (Number(form.stock) <= 0) {
-  return showAlert("warning", "Stock must be greater than 0.");
-}
     
+
+ 
+
     const stockNum = Number(form.stock);
     const computedStatus =
       stockNum === 0
@@ -315,7 +383,7 @@ if (Number(form.stock) <= 0) {
     const productData = {
       ...form,
       name: form.name.trim(),
-      generic: form.generic.trim().toUpperCase() || "No Generic Name",
+      generic: form.generic.trim() || "No Generic Name",
       price: Number(form.price),
       stock: stockNum,
       status: computedStatus,
@@ -348,6 +416,7 @@ if (Number(form.stock) <= 0) {
 
   const handleReset = () => {
     setSearch("");
+    setGenericFilter("all");
     setCategoryFilter("all");
     setStatusFilter("all");
     setOrder("desc");
@@ -380,12 +449,12 @@ if (Number(form.stock) <= 0) {
       }}
     >
       {alert && (
- <Alert
-    key={alert.id}          
-    id={alert.id}           
-    type={alert.type}
-    message={alert.message}
-  />
+        <Alert
+          key={alert.id}
+          id={alert.id}
+          type={alert.type}
+          message={alert.message}
+        />
       )}
 
       {/* HEADER */}
@@ -404,8 +473,6 @@ if (Number(form.stock) <= 0) {
             Manage your product catalog, inventory, and pricing.
           </Typography>
         </Box>
-
-   
       </Stack>
 
       {/* PRODUCT ENTRY FORM */}
@@ -471,12 +538,21 @@ if (Number(form.stock) <= 0) {
             <TextField
               fullWidth
               size="small"
+              select
               label="Generic"
               name="generic"
               value={form.generic}
               onChange={handleChange}
-              placeholder="Acetaminophen "
-            />
+            >
+              <MenuItem value="">
+                <em>Select Generic</em>
+              </MenuItem>
+              {genericOptions.map((gen) => (
+                <MenuItem key={gen} value={gen}>
+                  {gen}
+                </MenuItem>
+              ))}
+            </TextField>
 
             <TextField
               fullWidth
@@ -511,7 +587,7 @@ if (Number(form.stock) <= 0) {
             <TextField
               fullWidth
               size="small"
-              label="Price ($) *"
+              label="Price ($) "
               name="price"
               type="number"
               value={form.price}
@@ -522,7 +598,7 @@ if (Number(form.stock) <= 0) {
             <TextField
               fullWidth
               size="small"
-              label="Stock Quantity *"
+              label="Stock Quantity"
               name="stock"
               type="number"
               value={form.stock}
@@ -605,7 +681,7 @@ if (Number(form.stock) <= 0) {
               gridTemplateColumns: {
                 xs: "minmax(0, 1fr)",
                 sm: "repeat(2, minmax(0, 1fr))",
-                md: "minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto",
+                md: "minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) auto",
               },
               gap: 2,
               mb: 3,
@@ -629,6 +705,25 @@ if (Number(form.stock) <= 0) {
                 ),
               }}
             />
+
+            <FormControl fullWidth size="small">
+              <InputLabel>Generic</InputLabel>
+              <Select
+                value={genericFilter}
+                label="Generic"
+                onChange={(e) => {
+                  setGenericFilter(e.target.value);
+                  setPage(0);
+                }}
+              >
+                <MenuItem value="all">All Generics</MenuItem>
+                {genericOptions.map((gen) => (
+                  <MenuItem key={gen} value={gen}>
+                    {gen}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
             <FormControl fullWidth size="small">
               <InputLabel>Category</InputLabel>
@@ -936,11 +1031,21 @@ if (Number(form.stock) <= 0) {
             <TextField
               fullWidth
               size="small"
+              select
               label="Generic"
               name="generic"
               value={form.generic}
               onChange={handleChange}
-            />
+            >
+              <MenuItem value="">
+                <em>Select Generic</em>
+              </MenuItem>
+              {genericOptions.map((gen) => (
+                <MenuItem key={gen} value={gen}>
+                  {gen}
+                </MenuItem>
+              ))}
+            </TextField>
 
             <TextField
               fullWidth
@@ -975,7 +1080,7 @@ if (Number(form.stock) <= 0) {
             <TextField
               fullWidth
               size="small"
-              label="Price ($) *"
+              label="Price ($)"
               name="price"
               type="number"
               value={form.price}
@@ -986,7 +1091,7 @@ if (Number(form.stock) <= 0) {
             <TextField
               fullWidth
               size="small"
-              label="Stock Quantity *"
+              label="Stock Quantity "
               name="stock"
               type="number"
               value={form.stock}
