@@ -22,13 +22,7 @@ export type PurchaseHistoryProduct = {
   grandTotal: number;
 };
 
-
-
-
-
-
 // Demo vendors and history. Replace these with vendor and purchase-history API data.
-
 
 export const sortOptions = [
   { value: "date-desc", label: "Date (Newest first)" },
@@ -869,7 +863,7 @@ export type InvoiceItem = {
   id: number;
   vendorName: string;
   vendorNtn: string;
-  invoiceNumber: string;
+  purchasenumber: string;
   invoiceDate: string;
   productName: string;
   batchNumber: string;
@@ -887,7 +881,7 @@ export type InvoiceItem = {
 export type FormState = {
   vendorName: string;
   vendorNtn: string;
-  invoiceNumber: string;
+  purchasenumber: string;
   invoiceDate: string;
   productName: string;
   batchNumber: string;
@@ -919,7 +913,7 @@ export type ProductBatchItem = {
 export const emptyForm: FormState = {
   vendorName: "",
   vendorNtn: "",
-  invoiceNumber: "",
+  purchasenumber: "",
   invoiceDate: "",
   productName: "",
   batchNumber: "",
@@ -1092,4 +1086,3 @@ export const vendorHistory: Record<string, PurchaseHistoryInvoice[]> = {
   ],
   "v-3": [],
 };
-  

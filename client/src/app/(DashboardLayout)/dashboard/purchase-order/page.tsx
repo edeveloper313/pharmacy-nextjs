@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Alert as MuiAlert,
   Autocomplete,
@@ -467,7 +467,7 @@ export default function PurchaseInvoicePage() {
       return;
     }
     if (
-      !form.invoiceNumber.trim() ||
+      !form.purchasenumber.trim() ||
       !form.invoiceDate ||
       !form.productName.trim() ||
       !form.batchNumber.trim() ||
@@ -500,7 +500,7 @@ export default function PurchaseInvoicePage() {
       id: Date.now(),
       vendorName: selectedvendor.name,
       vendorNtn: selectedvendor.ntn,
-      invoiceNumber: form.invoiceNumber.trim(),
+      purchasenumber: form.purchasenumber.trim(),
       invoiceDate: form.invoiceDate,
       productName: form.productName.trim(),
       batchNumber: form.batchNumber.trim(),
@@ -644,7 +644,7 @@ export default function PurchaseInvoicePage() {
     if (!editDraft) return;
     const invoiceNo = editDraft.invoiceNo.trim();
     if (!invoiceNo) {
-      setEditError("Invoice number is required.");
+      setEditError("Purchase number is required.");
       return;
     }
     if (!editDraft.date) {
@@ -673,7 +673,7 @@ export default function PurchaseInvoicePage() {
     );
     if (isDuplicate) {
       setEditError(
-        `Invoice number ${invoiceNo} already exists for ${editDraft.vendorName}.`,
+        `Purchase number ${invoiceNo} already exists for ${editDraft.vendorName}.`,
       );
       return;
     }
@@ -717,7 +717,19 @@ export default function PurchaseInvoicePage() {
     : 0;
 
   // ==================== Render ====================
-
+  // generatePurchaseNumber
+  const generatePurchaseNumber = () => {
+    const randomNumber = Math.floor(1000 + Math.random() * 9000);
+    return `PO-${randomNumber}`;
+  };
+  useEffect(() => {
+    if (!form.purchasenumber) {
+      setForm((prev) => ({
+        ...prev,
+        purchasenumber: generatePurchaseNumber(),
+      }));
+    }
+  }, []);
   return (
     <Box
       sx={{
@@ -829,11 +841,12 @@ export default function PurchaseInvoicePage() {
                   fullWidth
                   required
                   size="small"
-                  label="Invoice Number"
-                  name="invoiceNumber"
-                  value={form.invoiceNumber}
+                  label="Purchase Number"
+                  name="purchasenumber"
+                  value={form.purchasenumber}
                   onChange={handleChange}
-                  placeholder="e.g. SUP-INV-1025"
+                  InputProps={{ readOnly: true }}
+                  placeholder="e.g. PO-1025"
                   sx={fieldSx}
                 />
                 <TextField
@@ -1361,7 +1374,7 @@ export default function PurchaseInvoicePage() {
                           <TableCell
                             sx={{ fontSize: 11, whiteSpace: "nowrap" }}
                           >
-                            {item.invoiceNumber}
+                            {item.purchasenumber}
                           </TableCell>
                           <TableCell sx={{ fontSize: 11, minWidth: 140 }}>
                             {item.productName}
@@ -2033,7 +2046,7 @@ export default function PurchaseInvoicePage() {
                   fullWidth
                   required
                   size="small"
-                  label="Invoice Number"
+                  label="Purchase Number"
                   value={editDraft.invoiceNo}
                   onChange={(event) =>
                     updateDraftField("invoiceNo", event.target.value)

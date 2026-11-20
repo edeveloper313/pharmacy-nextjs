@@ -30,6 +30,7 @@ import {
   IconUser,
   IconDatabase,
   IconPackage,
+  IconCategory,
   IconUsers,
   IconBuildingStore,
   IconX,
@@ -41,6 +42,7 @@ import {
 // --------------------------------------------------
 
 export const GENERIC_STORAGE_KEY = "dashboard_generics";
+export const CATEGORY_STORAGE_KEY = "dashboard_categories";
 export const CUSTOMER_TYPE_STORAGE_KEY = "dashboard_customer_types";
 export const VENDOR_TYPE_STORAGE_KEY = "dashboard_vendor_types";
 
@@ -49,6 +51,11 @@ export const VENDOR_TYPE_STORAGE_KEY = "dashboard_vendor_types";
 // --------------------------------------------------
 
 export type Generic = {
+  id: string;
+  name: string;
+};
+
+export type Category = {
   id: string;
   name: string;
 };
@@ -87,6 +94,9 @@ export function getStoredData<T>(key: string): T[] {
 const generateGenericId = () =>
   `GEN-${Math.floor(100000 + Math.random() * 900000)}`;
 
+const generateCategoryId = () =>
+  `CAT-${Math.floor(100000 + Math.random() * 900000)}`;
+
 const generateCustomerTypeId = () =>
   `CT-${Math.floor(100000 + Math.random() * 900000)}`;
 
@@ -106,17 +116,22 @@ const Profile = () => {
 
   // Active form
   const [activeForm, setActiveForm] = useState<
-    "generic" | "customer" | "vendor"
+    "generic" | "category" | "customer" | "vendor"
   >("generic");
 
   // Records
   const [generics, setGenerics] = useState<Generic[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [customerTypes, setCustomerTypes] = useState<CustomerType[]>([]);
   const [vendorTypes, setVendorTypes] = useState<VendorType[]>([]);
 
   // Generic form
   const [genericId, setGenericId] = useState("");
   const [genericName, setGenericName] = useState("");
+
+  // Category form
+  const [categoryId, setCategoryId] = useState("");
+  const [categoryName, setCategoryName] = useState("");
 
   // Customer type form
   const [customerTypeId, setCustomerTypeId] = useState("");
@@ -138,6 +153,7 @@ const Profile = () => {
 
   useEffect(() => {
     setGenericId(generateGenericId());
+    setCategoryId(generateCategoryId());
     setCustomerTypeId(generateCustomerTypeId());
     setVendorTypeId(generateVendorTypeId());
   }, []);
@@ -145,6 +161,7 @@ const Profile = () => {
   useEffect(() => {
     const loadData = () => {
       setGenerics(getStoredData<Generic>(GENERIC_STORAGE_KEY));
+      setCategories(getStoredData<Category>(CATEGORY_STORAGE_KEY));
       setCustomerTypes(getStoredData<CustomerType>(CUSTOMER_TYPE_STORAGE_KEY));
       setVendorTypes(getStoredData<VendorType>(VENDOR_TYPE_STORAGE_KEY));
     };
@@ -264,6 +281,63 @@ const Profile = () => {
     setNotice({
       type: "success",
       text: "Generic saved successfully!",
+    });
+  };
+
+  // --------------------------------------------------
+  // SAVE CATEGORY
+  // --------------------------------------------------
+
+  const handleSaveCategory = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const id = categoryId.trim();
+    const name = categoryName.trim();
+
+    if (!id || !name) {
+      setNotice({
+        type: "error",
+        text: "Please enter Category ID and Category Name.",
+      });
+      return;
+    }
+
+    const duplicateId = categories.some(
+      (item) => item.id.toLowerCase() === id.toLowerCase(),
+    );
+
+    const duplicateName = categories.some(
+      (item) => item.name.toLowerCase() === name.toLowerCase(),
+    );
+
+    if (duplicateId) {
+      setNotice({
+        type: "error",
+        text: "This Category ID already exists.",
+      });
+      return;
+    }
+
+    if (duplicateName) {
+      setNotice({
+        type: "error",
+        text: "This Category Name already exists.",
+      });
+      return;
+    }
+
+    const updatedData = [...categories, { id, name }];
+
+    if (!saveToStorage(CATEGORY_STORAGE_KEY, updatedData)) return;
+
+    setCategories(updatedData);
+
+    setCategoryId(generateCategoryId());
+    setCategoryName("");
+
+    setNotice({
+      type: "success",
+      text: "Category saved successfully!",
     });
   };
 
@@ -576,7 +650,18 @@ const Profile = () => {
         <DialogContent sx={{ pt: 3 }}>
           {/* FORM SELECTION BUTTONS */}
 
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} mb={3}>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, 1fr)",
+                md: "repeat(4, 1fr)",
+              },
+              gap: 1.5,
+              mb: 3,
+            }}
+          >
             <Button
               fullWidth
               variant={activeForm === "generic" ? "contained" : "outlined"}
@@ -592,6 +677,23 @@ const Profile = () => {
               }
             >
               Create Generic
+            </Button>
+
+            <Button
+              fullWidth
+              variant={activeForm === "category" ? "contained" : "outlined"}
+              startIcon={<IconCategory size={19} />}
+              onClick={() => {
+                setActiveForm("category");
+                setNotice(null);
+              }}
+              sx={
+                activeForm === "category"
+                  ? { ...primaryButtonSx, px: 1.5 }
+                  : tabButtonSx
+              }
+            >
+              Create Category
             </Button>
 
             <Button
@@ -627,7 +729,7 @@ const Profile = () => {
             >
               Create Vendor Type
             </Button>
-          </Stack>
+          </Box>
 
           <Divider sx={{ mb: 3 }} />
 
@@ -709,6 +811,90 @@ const Profile = () => {
                     sx={primaryButtonSx}
                   >
                     Save Generic
+                  </Button>
+                </Box>
+              </Stack>
+            </Box>
+          )}
+
+          {/* =====================================
+              CATEGORY FORM
+          ===================================== */}
+
+          {activeForm === "category" && (
+            <Box
+              component="form"
+              id="category-form"
+              onSubmit={handleSaveCategory}
+            >
+              <Stack spacing={2.5}>
+                <Box>
+                  <Typography fontWeight={700} color="#2563eb" mb={0.5}>
+                    Category Information
+                  </Typography>
+
+                  <Typography variant="caption" color="text.secondary">
+                    Enter the category details below.
+                  </Typography>
+                </Box>
+
+                <TextField
+                  fullWidth
+                  required
+                  size="small"
+                  label="Category ID"
+                  placeholder="Auto Generated"
+                  value={categoryId}
+                  InputProps={{ readOnly: true }}
+                  sx={fieldSx}
+                />
+
+                <Autocomplete
+                  freeSolo
+                  fullWidth
+                  options={categories.map((item) => item.name)}
+                  value={categoryName}
+                  onChange={(_, value) =>
+                    setCategoryName(typeof value === "string" ? value : "")
+                  }
+                  onInputChange={(_, value) => setCategoryName(value)}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      required
+                      size="small"
+                      label="Category Name"
+                      placeholder="Search or enter category name..."
+                      helperText={
+                        categories.length
+                          ? `${categories.length} existing categories available`
+                          : "Enter a new category name"
+                      }
+                      sx={fieldSx}
+                    />
+                  )}
+                />
+
+                <Divider />
+
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  flexWrap="wrap"
+                  gap={1}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    Total Categories: {categories.length}
+                  </Typography>
+
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    startIcon={<IconDeviceFloppy size={18} />}
+                    sx={primaryButtonSx}
+                  >
+                    Save Category
                   </Button>
                 </Box>
               </Stack>
