@@ -1,59 +1,115 @@
+"use client";
+
 import React from "react";
 import Menuitems from "./MenuItems";
+
 import { Box, Tooltip } from "@mui/material";
+
 import {
   Sidebar as MUI_Sidebar,
   Menu,
   MenuItem,
   Submenu,
 } from "react-mui-sidebar";
-import { IconPoint } from '@tabler/icons-react';
+
+import { IconPoint } from "@tabler/icons-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
 import ForSidebarLogo from "../shared/logo/ForSidebarLogo";
 
-const renderMenuItems = (items: any, pathDirect: any, isSidebarOpen: boolean) => {
+interface SidebarItemsProps {
+  isSidebarOpen?: boolean;
+}
+
+const renderMenuItems = (
+  items: any[],
+  pathDirect: string,
+  isSidebarOpen: boolean,
+): React.ReactNode => {
   return items.map((item: any) => {
-    const Icon = item.icon ? item.icon : IconPoint;
+    const Icon = item.icon || IconPoint;
+
     const itemIcon = <Icon stroke={1.5} size="1.3rem" />;
 
+    // =========================
+    // SECTION HEADING
+    // =========================
     if (item.subheader) {
+      // Closed sidebar mein heading render nahi hogi
+      if (!isSidebarOpen) return null;
+
       return (
-        <Menu
-          subHeading={isSidebarOpen ? item.subheader : ""} 
-          key={item.subheader}
-        />
+        <Menu key={item.id || item.subheader} subHeading={item.subheader} />
       );
     }
 
+    // =========================
+    // SUBMENU
+    // =========================
     if (item.children) {
       return (
-        <Submenu
+        <Tooltip
           key={item.id}
-          title={isSidebarOpen ? item.title : ""}
-          icon={itemIcon}
-          borderRadius='7px'
+          title={!isSidebarOpen ? item.title : ""}
+          placement="right"
+          arrow
+          disableHoverListener={isSidebarOpen}
         >
-          {renderMenuItems(item.children, pathDirect, isSidebarOpen)}
-        </Submenu>
+          <Box>
+            <Submenu
+              title={isSidebarOpen ? item.title : ""}
+              icon={itemIcon}
+              borderRadius="7px"
+            >
+              {renderMenuItems(item.children, pathDirect, isSidebarOpen)}
+            </Submenu>
+          </Box>
+        </Tooltip>
       );
     }
 
+    // =========================
+    // NORMAL MENU ITEM
+    // =========================
+    const isSelected = pathDirect === item.href;
+
     return (
-      <Box px={isSidebarOpen ? 3 : 1} key={item.id} sx={{ display: 'flex', justifyContent: isSidebarOpen ? 'flex-start' : 'center' }}>
-        <Tooltip title={!isSidebarOpen ? item.title : ""} placement="right" arrow>
-          <Box sx={{ width: '100%' }}>
+      <Box
+        key={item.id}
+        px={isSidebarOpen ? 3 : 1}
+        sx={{
+          display: "flex",
+          justifyContent: isSidebarOpen ? "flex-start" : "center",
+          width: "100%",
+          boxSizing: "border-box",
+        }}
+      >
+        <Tooltip
+          title={!isSidebarOpen ? item.title : ""}
+          placement="right"
+          arrow
+          disableHoverListener={isSidebarOpen}
+        >
+          <Box sx={{ width: "100%" }}>
             <MenuItem
-              key={item.id}
-              isSelected={pathDirect === item?.href}
-              borderRadius='8px'
+              isSelected={isSelected}
+              borderRadius="8px"
               icon={itemIcon}
               link={item.href}
               component={Link}
             >
-              <Box sx={{ display: isSidebarOpen ? 'block' : 'none', whiteSpace: 'nowrap' }}>
-                {item.title}
-              </Box>
+              {isSidebarOpen && (
+                <Box
+                  sx={{
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {item.title}
+                </Box>
+              )}
             </MenuItem>
           </Box>
         </Tooltip>
@@ -62,30 +118,30 @@ const renderMenuItems = (items: any, pathDirect: any, isSidebarOpen: boolean) =>
   });
 };
 
-interface SidebarItemsProps {
-  isSidebarOpen?: boolean;
-}
-
 const SidebarItems = ({ isSidebarOpen = true }: SidebarItemsProps) => {
   const pathname = usePathname();
-  const pathDirect = pathname;
 
   return (
-    <>
-      <MUI_Sidebar 
-        width={"100%"} 
-        showProfile={false} 
-        themeColor={"#5D87FF"} 
-        themeSecondaryColor={'#49beff'} 
+    <MUI_Sidebar
+      width="100%"
+      showProfile={false}
+      themeColor="#5D87FF"
+      themeSecondaryColor="#49beff"
+    >
+      {/* LOGO */}
+      <Box
+        sx={{
+          width: "100%",
+          display: "flex",
+          justifyContent: isSidebarOpen ? "flex-start" : "center",
+        }}
       >
-        {/* Yahan Logo ko isSidebarOpen pass kiya hai */}
-        <Box sx={{ width: '100%', display: 'flex', justifyContent: isSidebarOpen ? 'flex-start' : 'center' }}>
-          <ForSidebarLogo isSidebarOpen={isSidebarOpen} />
-        </Box>
+        <ForSidebarLogo isSidebarOpen={isSidebarOpen} />
+      </Box>
 
-        {renderMenuItems(Menuitems, pathDirect, isSidebarOpen)}
-      </MUI_Sidebar>
-    </>
+      {/* MENU ITEMS */}
+      {renderMenuItems(Menuitems, pathname, isSidebarOpen)}
+    </MUI_Sidebar>
   );
 };
 

@@ -1,26 +1,22 @@
 import {
   IconLayoutDashboard,
   IconUserCircle,
-  IconSettings,
   IconFileInvoice,
   IconPackage,
-  IconUsers,
   IconShoppingCart,
-  IconPackages,
-  IconReceipt,
-  IconFileExport,
-  IconTruckDelivery,
   IconChartBar,
-  IconShieldLock,
-  IconLogin,
-  IconUserPlus,
   IconAddressBook,
   IconTruck,
   IconHistory,
+  IconUserPlus,
 } from "@tabler/icons-react";
 
 import { uniqueId } from "lodash";
+
 const Menuitems = [
+  // =========================
+  // 1. HOME
+  // =========================
   {
     navlabel: true,
     subheader: "HOME",
@@ -31,43 +27,19 @@ const Menuitems = [
     icon: IconLayoutDashboard,
     href: "/dashboard",
   },
-  {
-    id: uniqueId(),
-    title: "Profile",
-    icon: IconUserCircle,
-    href: "/dashboard/profile",
-  },
 
+  // =========================
+  // 2. SALES MANAGEMENT
+  // =========================
+  {
+    navlabel: true,
+    subheader: "SALES MANAGEMENT",
+  },
   {
     id: uniqueId(),
     title: "Product Order",
     icon: IconPackage,
     href: "/dashboard/product-order",
-  },
-  {
-    id: uniqueId(),
-    title: "Customer",
-    icon: IconAddressBook,
-    href: "/dashboard/customer",
-  },
-  {
-    id: uniqueId(),
-    title: "Supplier",
-    icon: IconTruck,
-    href: "/dashboard/supplier",
-  },
-  {
-    id: uniqueId(),
-    title: "Purchase Order",
-    icon: IconUserPlus,
-    href: "/dashboard/purchase-order",
-  },
-
-  {
-    id: uniqueId(),
-    title: "Product Order History",
-    icon: IconHistory,
-    href: "/dashboard/porduct-order-history",
   },
   {
     id: uniqueId(),
@@ -83,9 +55,37 @@ const Menuitems = [
   },
   {
     id: uniqueId(),
-    title: "Client Management",
-    icon: IconUsers,
-    href: "/dashboard/client-management",
+    title: "Product Order History",
+    icon: IconHistory,
+    href: "/dashboard/porduct-order-history",
+  },
+
+  // =========================
+  // 3. PURCHASE MANAGEMENT
+  // =========================
+  {
+    navlabel: true,
+    subheader: "PURCHASE MANAGEMENT",
+  },
+  {
+    id: uniqueId(),
+    title: "Supplier",
+    icon: IconTruck,
+    href: "/dashboard/supplier",
+  },
+  {
+    id: uniqueId(),
+    title: "Purchase Order",
+    icon: IconUserPlus,
+    href: "/dashboard/purchase-order",
+  },
+
+  // =========================
+  // 4. MASTER DATA
+  // =========================
+  {
+    navlabel: true,
+    subheader: "MASTER DATA",
   },
   {
     id: uniqueId(),
@@ -95,9 +95,29 @@ const Menuitems = [
   },
   {
     id: uniqueId(),
-    title: "Master Client Entry",
+    title: "Customer",
     icon: IconAddressBook,
+    href: "/dashboard/customer",
+  },
+  {
+    id: uniqueId(),
+    title: "Client Management",
+    icon: IconAddressBook,
+    href: "/dashboard/client-management",
+  },
+  {
+    id: uniqueId(),
+    title: "Master Client Entry",
+    icon: IconUserPlus,
     href: "/dashboard/master-client-entry",
+  },
+
+  // =========================
+  // 5. ACCOUNTS
+  // =========================
+  {
+    navlabel: true,
+    subheader: "ACCOUNTS",
   },
   {
     id: uniqueId(),
@@ -105,6 +125,25 @@ const Menuitems = [
     icon: IconFileInvoice,
     href: "/dashboard/ledger",
   },
+
+  // =========================
+  // 6. ACCOUNT SETTINGS
+  // =========================
+  {
+    navlabel: true,
+    subheader: "ACCOUNT SETTINGS",
+  },
+  {
+    id: uniqueId(),
+    title: "Profile",
+    icon: IconUserCircle,
+    href: "/dashboard/profile",
+  },
+
+  // =========================
+  // FUTURE MODULES
+  // =========================
+
   // {
   //   id: uniqueId(),
   //   title: "Smart Purchase",
@@ -114,25 +153,25 @@ const Menuitems = [
   // {
   //   id: uniqueId(),
   //   title: "Inventory Management",
-  //   icon: IconPackages,
+  //   icon: IconPackage,
   //   href: "/dashboard/inventory-management",
   // },
   // {
   //   id: uniqueId(),
   //   title: "Billing System",
-  //   icon: IconReceipt,
+  //   icon: IconFileInvoice,
   //   href: "/dashboard/billing-system",
   // },
   // {
   //   id: uniqueId(),
   //   title: "Invoice Export",
-  //   icon: IconFileExport,
+  //   icon: IconFileInvoice,
   //   href: "/dashboard/invoice-export",
   // },
   // {
   //   id: uniqueId(),
   //   title: "Digital Delivery",
-  //   icon: IconTruckDelivery,
+  //   icon: IconTruck,
   //   href: "/dashboard/digital-delivery",
   // },
   // {
@@ -144,7 +183,7 @@ const Menuitems = [
   // {
   //   id: uniqueId(),
   //   title: "Security",
-  //   icon: IconShieldLock,
+  //   icon: IconUserCircle,
   //   href: "/dashboard/security",
   // },
 ];
