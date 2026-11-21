@@ -36,9 +36,10 @@ import {
   CloseOutlined,
   EditOutlined,
   Inventory2Outlined,
+  PictureAsPdfOutlined,
+  PrintOutlined,
   ReceiptLongOutlined,
   SaveOutlined,
-  PrintOutlined,
   VisibilityOutlined,
 } from "@mui/icons-material";
 import Alert from "@/app/components/Alert";
@@ -50,6 +51,15 @@ type CustomerType =
   | "Pharmacy / Medical Store"
   | "Wholesale Distributor";
 
+type Profile = {
+  id: string;
+  name: string;
+  licenseNo: string;
+  phone: string;
+  email: string;
+  address: string;
+};
+
 type Customer = {
   id: string;
   name: string;
@@ -57,6 +67,7 @@ type Customer = {
   phone: string;
   city: string;
 };
+
 type Product = {
   id: string;
   name: string;
@@ -88,6 +99,13 @@ type PurchaseOrder = {
 };
 
 type PrintOptions = {
+  // Profile options
+  profileName: boolean;
+  profileLicense: boolean;
+  profilePhone: boolean;
+  profileEmail: boolean;
+  profileAddress: boolean;
+  // Customer / Invoice / Product options
   customerType: boolean;
   customerName: boolean;
   customerPhone: boolean;
@@ -108,6 +126,7 @@ type PrintOptions = {
 type Invoice = {
   id: string;
   invoiceNumber: string;
+  profile: Profile | null;
   customer: Customer;
   purchaseSerialNumber: string;
   invoiceDate: string;
@@ -120,6 +139,7 @@ type Invoice = {
 type PrintPreviewData = {
   invoiceNumber: string;
   invoiceDate: string;
+  profile: Profile | null;
   customer: Customer;
   po: PurchaseOrder;
   entries: InvoiceEntry[];
@@ -127,6 +147,33 @@ type PrintPreviewData = {
 };
 
 type Message = { type: "success" | "error" | "warning" | "info"; text: string };
+
+const profiles: Profile[] = [
+  {
+    id: "PRF-001",
+    name: "MedCore Pharma Distributors",
+    licenseNo: "NTN-4482910-4 · DL-KHI-8821",
+    phone: "021-35841290",
+    email: "billing@medcorepharma.pk",
+    address: "Plot 14-C, Shahrah-e-Faisal, Karachi",
+  },
+  {
+    id: "PRF-002",
+    name: "CareLine Medical Supplies",
+    licenseNo: "NTN-7731042-8 · DL-LHR-4410",
+    phone: "042-35762100",
+    email: "accounts@carelinemedical.pk",
+    address: "28-B, Gulberg III, Lahore",
+  },
+  {
+    id: "PRF-003",
+    name: "PrimeHealth Surgical & Pharma",
+    licenseNo: "NTN-9102845-1 · DL-ISB-1192",
+    phone: "051-2894510",
+    email: "invoices@primehealth.pk",
+    address: "Suite 7, Blue Area, Islamabad",
+  },
+];
 
 const customerTypes: CustomerType[] = [
   "Clinic",
@@ -500,6 +547,11 @@ const purchaseOrders: PurchaseOrder[] = [
 ];
 
 const defaultPrintOptions: PrintOptions = {
+  profileName: true,
+  profileLicense: true,
+  profilePhone: true,
+  profileEmail: true,
+  profileAddress: true,
   customerType: true,
   customerName: true,
   customerPhone: true,
@@ -516,6 +568,17 @@ const defaultPrintOptions: PrintOptions = {
   lineTotal: true,
   grandTotal: true,
 };
+
+const profilePrintOptionFields: Array<{
+  key: keyof PrintOptions;
+  label: string;
+}> = [
+  { key: "profileName", label: "Profile / Company Name" },
+  { key: "profileLicense", label: "NTN / License #" },
+  { key: "profilePhone", label: "Profile Phone" },
+  { key: "profileEmail", label: "Profile Email" },
+  { key: "profileAddress", label: "Profile Address" },
+];
 
 const printOptionFields: Array<{ key: keyof PrintOptions; label: string }> = [
   { key: "customerType", label: "Customer Type" },
@@ -539,6 +602,7 @@ const demoInvoices: Invoice[] = [
   {
     id: "INV-001",
     invoiceNumber: "INV-2026-001",
+    profile: profiles[0],
     customer: customers[0],
     purchaseSerialNumber: "PO-2026-1001",
     invoiceDate: "2026-11-10",
@@ -550,6 +614,7 @@ const demoInvoices: Invoice[] = [
   {
     id: "INV-002",
     invoiceNumber: "INV-2026-002",
+    profile: profiles[1],
     customer: customers[1],
     purchaseSerialNumber: "PO-2026-1003",
     invoiceDate: "2026-11-12",
@@ -596,6 +661,495 @@ const cardSx = {
   boxShadow: "none",
 };
 
+// ============ Pure Client-Side PDF Generator (respects all printOptions) ============
+function wrapCanvasText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+): string[] {
+  const words = String(text ?? "").split(/\s+/);
+  const lines: string[] = [];
+  let current = "";
+
+  for (const word of words) {
+    const test = current ? `${current} ${word}` : word;
+    if (ctx.measureText(test).width <= maxWidth) {
+      current = test;
+    } else {
+      if (current) lines.push(current);
+      if (ctx.measureText(word).width <= maxWidth) {
+        current = word;
+      } else {
+        // Hard-break a single very long token
+        let chunk = "";
+        for (const ch of word) {
+          if (ctx.measureText(chunk + ch).width <= maxWidth) {
+            chunk += ch;
+          } else {
+            if (chunk) lines.push(chunk);
+            chunk = ch;
+          }
+        }
+        current = chunk;
+      }
+    }
+  }
+  if (current) lines.push(current);
+  return lines.length > 0 ? lines : [""];
+}
+
+function buildPdfFromCanvases(canvases: HTMLCanvasElement[]): Blob {
+  const encoder = new TextEncoder();
+  const pageWidthPt = 595.28;
+  const pageHeightPt = 841.89;
+  const totalPages = canvases.length;
+  const totalObjects = 2 + totalPages * 3;
+  const kids = Array.from(
+    { length: totalPages },
+    (_, i) => `${3 + i * 3} 0 R`,
+  ).join(" ");
+
+  const chunks: Uint8Array[] = [];
+  const offsets: number[] = new Array(totalObjects + 1).fill(0);
+  let byteLength = 0;
+
+  const pushBytes = (bytes: Uint8Array) => {
+    chunks.push(bytes);
+    byteLength += bytes.length;
+  };
+  const pushStr = (str: string) => pushBytes(encoder.encode(str));
+
+  pushStr("%PDF-1.4\n");
+
+  // 1: Catalog
+  offsets[1] = byteLength;
+  pushStr("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+
+  // 2: Pages
+  offsets[2] = byteLength;
+  pushStr(
+    `2 0 obj\n<< /Type /Pages /Kids [${kids}] /Count ${totalPages} >>\nendobj\n`,
+  );
+
+  for (let i = 0; i < totalPages; i++) {
+    const canvas = canvases[i];
+    const base64 = canvas.toDataURL("image/jpeg", 0.95).split(",")[1];
+    const binary = atob(base64);
+    const jpegBytes = new Uint8Array(binary.length);
+    for (let j = 0; j < binary.length; j++) {
+      jpegBytes[j] = binary.charCodeAt(j);
+    }
+
+    const pageObj = 3 + i * 3;
+    const contentObj = 4 + i * 3;
+    const imgObj = 5 + i * 3;
+    const contentStream = `q ${pageWidthPt} 0 0 ${pageHeightPt} 0 0 cm /Im0 Do Q`;
+
+    offsets[pageObj] = byteLength;
+    pushStr(
+      `${pageObj} 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidthPt} ${pageHeightPt}] /Resources << /XObject << /Im0 ${imgObj} 0 R >> >> /Contents ${contentObj} 0 R >>\nendobj\n`,
+    );
+
+    offsets[contentObj] = byteLength;
+    pushStr(
+      `${contentObj} 0 obj\n<< /Length ${contentStream.length} >>\nstream\n${contentStream}\nendstream\nendobj\n`,
+    );
+
+    offsets[imgObj] = byteLength;
+    pushStr(
+      `${imgObj} 0 obj\n<< /Type /XObject /Subtype /Image /Width ${canvas.width} /Height ${canvas.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpegBytes.length} >>\nstream\n`,
+    );
+    pushBytes(jpegBytes);
+    pushStr("\nendstream\nendobj\n");
+  }
+
+  const xrefStart = byteLength;
+  pushStr(`xref\n0 ${totalObjects + 1}\n`);
+  pushStr("0000000000 65535 f \n");
+  for (let i = 1; i <= totalObjects; i++) {
+    pushStr(`${String(offsets[i]).padStart(10, "0")} 00000 n \n`);
+  }
+  pushStr(
+    `trailer\n<< /Size ${totalObjects + 1} /Root 1 0 R >>\nstartxref\n${xrefStart}\n%%EOF`,
+  );
+
+  const output = new Uint8Array(byteLength);
+  let pos = 0;
+  for (const chunk of chunks) {
+    output.set(chunk, pos);
+    pos += chunk.length;
+  }
+  return new Blob([output], { type: "application/pdf" });
+}
+
+function downloadInvoicePdf(data: InvoicePrintableProps) {
+  const PAGE_W = 1240;
+  const PAGE_H = 1754;
+  const MARGIN_X = 72;
+  const MARGIN_TOP = 72;
+  const MARGIN_BOTTOM = 72;
+  const CONTENT_W = PAGE_W - MARGIN_X * 2;
+  const FONT = "Inter, Arial, Helvetica, sans-serif";
+
+  const pages: HTMLCanvasElement[] = [];
+  const createPage = () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = PAGE_W;
+    canvas.height = PAGE_H;
+    const ctx = canvas.getContext("2d")!;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, PAGE_W, PAGE_H);
+    pages.push(canvas);
+    return ctx;
+  };
+
+  let ctx = createPage();
+  let y = MARGIN_TOP;
+
+  const {
+    invoiceNumber,
+    invoiceDate,
+    profile,
+    customer,
+    poSerial,
+    entries,
+    printOptions,
+  } = data;
+  const totals = sumEntries(entries);
+
+  // ---- Header (Profile on left if selected, Invoice # & Date on right) ----
+  const showProfileBlock = Boolean(
+    profile &&
+    (printOptions.profileName ||
+      printOptions.profileLicense ||
+      printOptions.profilePhone ||
+      printOptions.profileEmail ||
+      printOptions.profileAddress),
+  );
+
+  let leftY = y;
+  if (showProfileBlock && profile) {
+    if (printOptions.profileName) {
+      ctx.font = `800 28px ${FONT}`;
+      ctx.fillStyle = "#1e293b";
+      const lines = wrapCanvasText(ctx, profile.name, CONTENT_W * 0.58);
+      for (const line of lines) {
+        ctx.fillText(line, MARGIN_X, leftY + 24);
+        leftY += 32;
+      }
+    }
+    if (printOptions.profileLicense) {
+      ctx.font = `600 17px ${FONT}`;
+      ctx.fillStyle = "#475569";
+      const lines = wrapCanvasText(ctx, profile.licenseNo, CONTENT_W * 0.58);
+      for (const line of lines) {
+        ctx.fillText(line, MARGIN_X, leftY + 18);
+        leftY += 24;
+      }
+    }
+    if (printOptions.profileAddress) {
+      ctx.font = `400 17px ${FONT}`;
+      ctx.fillStyle = "#64748b";
+      const lines = wrapCanvasText(ctx, profile.address, CONTENT_W * 0.58);
+      for (const line of lines) {
+        ctx.fillText(line, MARGIN_X, leftY + 18);
+        leftY += 24;
+      }
+    }
+    const contactParts: string[] = [];
+    if (printOptions.profilePhone) contactParts.push(`Ph: ${profile.phone}`);
+    if (printOptions.profileEmail) contactParts.push(profile.email);
+    if (contactParts.length > 0) {
+      ctx.font = `400 17px ${FONT}`;
+      ctx.fillStyle = "#64748b";
+      const lines = wrapCanvasText(
+        ctx,
+        contactParts.join("  |  "),
+        CONTENT_W * 0.58,
+      );
+      for (const line of lines) {
+        ctx.fillText(line, MARGIN_X, leftY + 18);
+        leftY += 24;
+      }
+    }
+  } else {
+    ctx.font = `800 38px ${FONT}`;
+    ctx.fillStyle = "#2563eb";
+    ctx.fillText("INVOICE", MARGIN_X, leftY + 34);
+    leftY += 44;
+    ctx.font = `500 18px ${FONT}`;
+    ctx.fillStyle = "#64748b";
+    ctx.fillText(invoiceNumber, MARGIN_X, leftY + 18);
+    leftY += 26;
+  }
+
+  let rightY = y;
+  ctx.textAlign = "right";
+  if (showProfileBlock) {
+    ctx.font = `800 34px ${FONT}`;
+    ctx.fillStyle = "#2563eb";
+    ctx.fillText("INVOICE", PAGE_W - MARGIN_X, rightY + 30);
+    rightY += 40;
+    ctx.font = `600 18px ${FONT}`;
+    ctx.fillStyle = "#475569";
+    ctx.fillText(invoiceNumber, PAGE_W - MARGIN_X, rightY + 18);
+    rightY += 28;
+  }
+  if (printOptions.invoiceDate) {
+    ctx.font = `500 16px ${FONT}`;
+    ctx.fillStyle = "#64748b";
+    ctx.fillText("Invoice Date", PAGE_W - MARGIN_X, rightY + 16);
+    rightY += 22;
+    ctx.font = `700 20px ${FONT}`;
+    ctx.fillStyle = "#1e293b";
+    ctx.fillText(formatDate(invoiceDate), PAGE_W - MARGIN_X, rightY + 20);
+    rightY += 28;
+  }
+  ctx.textAlign = "left";
+
+  y = Math.max(leftY, rightY) + 20;
+  ctx.strokeStyle = "#2563eb";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(MARGIN_X, y);
+  ctx.lineTo(PAGE_W - MARGIN_X, y);
+  ctx.stroke();
+  y += 32;
+
+  // ---- Customer Info Block ----
+  const billItems: Array<{ label: string; value: string }> = [];
+  if (printOptions.customerName)
+    billItems.push({ label: "Customer", value: customer.name });
+  if (printOptions.customerType)
+    billItems.push({ label: "Type", value: customer.type });
+  if (printOptions.customerPhone)
+    billItems.push({ label: "Phone", value: customer.phone });
+  if (printOptions.customerCity)
+    billItems.push({ label: "City", value: customer.city });
+  if (printOptions.purchaseSerial)
+    billItems.push({ label: "PO #", value: poSerial });
+
+  if (billItems.length > 0) {
+    ctx.font = `700 21px ${FONT}`;
+    ctx.fillStyle = "#1e293b";
+    ctx.fillText("Bill To", MARGIN_X, y + 20);
+    y += 34;
+
+    const colW = CONTENT_W / 2 - 12;
+    for (let i = 0; i < billItems.length; i += 2) {
+      const pair = [billItems[i], billItems[i + 1]].filter(Boolean);
+      let rowH = 26;
+      pair.forEach((item, idx) => {
+        const xPos = MARGIN_X + idx * (CONTENT_W / 2);
+        const text = `${item.label}: ${item.value}`;
+        ctx.font = `400 18px ${FONT}`;
+        const lines = wrapCanvasText(ctx, text, colW);
+        rowH = Math.max(rowH, lines.length * 24 + 6);
+        lines.forEach((line, lIdx) => {
+          ctx.fillStyle = "#334155";
+          ctx.fillText(line, xPos, y + 18 + lIdx * 24);
+        });
+      });
+      y += rowH;
+    }
+    y += 22;
+  }
+
+  // ---- Products Table ----
+  const columns: Array<{
+    label: string;
+    weight: number;
+    align: "left" | "right";
+    render: (e: InvoiceEntry) => string;
+  }> = [];
+
+  if (printOptions.productSerial)
+    columns.push({
+      label: "Serial #",
+      weight: 1.2,
+      align: "left",
+      render: (e) => e.serialNumber,
+    });
+  if (printOptions.productName)
+    columns.push({
+      label: "Product",
+      weight: 2.2,
+      align: "left",
+      render: (e) => e.productName,
+    });
+  if (printOptions.productId)
+    columns.push({
+      label: "Product ID",
+      weight: 1.2,
+      align: "left",
+      render: (e) => e.productId,
+    });
+  if (printOptions.productType)
+    columns.push({
+      label: "Type",
+      weight: 0.9,
+      align: "left",
+      render: (e) => (e.isMasterProduct ? "Master" : "Normal"),
+    });
+  if (printOptions.quantity)
+    columns.push({
+      label: "Qty",
+      weight: 0.7,
+      align: "right",
+      render: (e) => String(e.quantity),
+    });
+  if (printOptions.price)
+    columns.push({
+      label: "Price",
+      weight: 1.15,
+      align: "right",
+      render: (e) => money(e.tp),
+    });
+  if (printOptions.discount)
+    columns.push({
+      label: "Discount",
+      weight: 0.9,
+      align: "right",
+      render: (e) => `${e.discountPercent}%`,
+    });
+  if (printOptions.lineTotal)
+    columns.push({
+      label: "Line Total",
+      weight: 1.35,
+      align: "right",
+      render: (e) => money(e.lineTotal),
+    });
+
+  if (columns.length > 0) {
+    const totalWeight = columns.reduce((s, c) => s + c.weight, 0);
+    const colWidths = columns.map((c) => (c.weight / totalWeight) * CONTENT_W);
+
+    const drawTableHeader = () => {
+      const headerH = 44;
+      ctx.fillStyle = "#f8fafc";
+      ctx.fillRect(MARGIN_X, y, CONTENT_W, headerH);
+      ctx.strokeStyle = "#cbd5e1";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(MARGIN_X, y, CONTENT_W, headerH);
+
+      ctx.font = `700 17px ${FONT}`;
+      ctx.fillStyle = "#334155";
+      let x = MARGIN_X;
+      columns.forEach((col, idx) => {
+        const w = colWidths[idx];
+        ctx.textAlign = col.align;
+        const textX = col.align === "right" ? x + w - 10 : x + 10;
+        ctx.fillText(col.label, textX, y + 28);
+        x += w;
+      });
+      ctx.textAlign = "left";
+      y += headerH;
+    };
+
+    drawTableHeader();
+
+    for (const entry of entries) {
+      ctx.font = `400 16px ${FONT}`;
+      const cellLines = columns.map((col, idx) =>
+        wrapCanvasText(ctx, col.render(entry), colWidths[idx] - 20),
+      );
+      const maxLines = Math.max(...cellLines.map((l) => l.length));
+      const rowH = Math.max(40, maxLines * 22 + 18);
+
+      if (y + rowH > PAGE_H - MARGIN_BOTTOM) {
+        ctx = createPage();
+        y = MARGIN_TOP;
+        drawTableHeader();
+      }
+
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(MARGIN_X, y, CONTENT_W, rowH);
+
+      let x = MARGIN_X;
+      columns.forEach((col, idx) => {
+        const w = colWidths[idx];
+        const lines = cellLines[idx];
+        ctx.textAlign = col.align;
+        ctx.fillStyle = "#1e293b";
+        const textX = col.align === "right" ? x + w - 10 : x + 10;
+        lines.forEach((line, lIdx) => {
+          ctx.fillText(line, textX, y + 25 + lIdx * 22);
+        });
+        x += w;
+      });
+      ctx.textAlign = "left";
+      y += rowH;
+    }
+  } else {
+    ctx.font = `400 18px ${FONT}`;
+    ctx.fillStyle = "#64748b";
+    ctx.textAlign = "center";
+    ctx.fillText("No columns selected for printing.", PAGE_W / 2, y + 36);
+    ctx.textAlign = "left";
+    y += 60;
+  }
+
+  // ---- Grand Total Block ----
+  if (printOptions.grandTotal) {
+    y += 32;
+    if (y + 160 > PAGE_H - MARGIN_BOTTOM) {
+      ctx = createPage();
+      y = MARGIN_TOP;
+    }
+
+    const boxW = 380;
+    const boxX = PAGE_W - MARGIN_X - boxW;
+    ctx.strokeStyle = "#2563eb";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(boxX, y);
+    ctx.lineTo(PAGE_W - MARGIN_X, y);
+    ctx.stroke();
+    y += 26;
+
+    const drawSummaryRow = (
+      label: string,
+      value: string,
+      bold = false,
+      color = "#1e293b",
+    ) => {
+      ctx.font = `${bold ? 800 : 500} ${bold ? 21 : 18}px ${FONT}`;
+      ctx.fillStyle = bold ? "#1e293b" : "#475569";
+      ctx.textAlign = "left";
+      ctx.fillText(label, boxX, y + 18);
+      ctx.fillStyle = color;
+      ctx.textAlign = "right";
+      ctx.fillText(value, PAGE_W - MARGIN_X, y + 18);
+      ctx.textAlign = "left";
+      y += bold ? 34 : 28;
+    };
+
+    drawSummaryRow("Total Quantity:", String(totals.quantity));
+    drawSummaryRow("Total Discount:", money(totals.discount));
+
+    ctx.strokeStyle = "#e2e8f0";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(boxX, y + 4);
+    ctx.lineTo(PAGE_W - MARGIN_X, y + 4);
+    ctx.stroke();
+    y += 18;
+
+    drawSummaryRow("Grand Total:", money(totals.total), true, "#2563eb");
+  }
+
+  const pdfBlob = buildPdfFromCanvases(pages);
+  const url = URL.createObjectURL(pdfBlob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${invoiceNumber}.pdf`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 // ============ Shared heading ============
 function SectionHeading({
   icon,
@@ -636,6 +1190,7 @@ function SectionHeading({
 type InvoicePrintableProps = {
   invoiceNumber: string;
   invoiceDate: string;
+  profile: Profile | null;
   customer: Customer;
   poSerial: string;
   entries: InvoiceEntry[];
@@ -645,6 +1200,7 @@ type InvoicePrintableProps = {
 function InvoicePrintable({
   invoiceNumber,
   invoiceDate,
+  profile,
   customer,
   poSerial,
   entries,
@@ -711,6 +1267,15 @@ function InvoicePrintable({
       render: (e) => money(e.lineTotal),
     });
 
+  const showProfileBlock = Boolean(
+    profile &&
+    (printOptions.profileName ||
+      printOptions.profileLicense ||
+      printOptions.profilePhone ||
+      printOptions.profileEmail ||
+      printOptions.profileAddress),
+  );
+
   const showHeaderCustomerBlock =
     printOptions.customerName ||
     printOptions.customerType ||
@@ -722,29 +1287,93 @@ function InvoicePrintable({
     <Box>
       {/* Invoice header */}
       <Stack
-        direction="row"
+        direction={{ xs: "column", sm: "row" }}
         justifyContent="space-between"
-        alignItems="flex-start"
+        alignItems={{ xs: "flex-start", sm: "flex-start" }}
+        spacing={2}
         mb={3}
         pb={2}
         sx={{ borderBottom: "2px solid #2563eb" }}
       >
-        <Box>
-          <Typography variant="h5" fontWeight={800} color="#2563eb">
-            INVOICE
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {invoiceNumber}
-          </Typography>
-        </Box>
-        {printOptions.invoiceDate && (
-          <Box textAlign="right">
-            <Typography variant="caption" color="text.secondary">
-              Invoice Date
+        {showProfileBlock && profile ? (
+          <Box>
+            {printOptions.profileName && (
+              <Typography variant="h6" fontWeight={800} color="#1e293b">
+                {profile.name}
+              </Typography>
+            )}
+            {printOptions.profileLicense && (
+              <Typography
+                variant="caption"
+                display="block"
+                fontWeight={600}
+                color="text.secondary"
+              >
+                {profile.licenseNo}
+              </Typography>
+            )}
+            {printOptions.profileAddress && (
+              <Typography
+                variant="caption"
+                display="block"
+                color="text.secondary"
+              >
+                {profile.address}
+              </Typography>
+            )}
+            {(printOptions.profilePhone || printOptions.profileEmail) && (
+              <Typography
+                variant="caption"
+                display="block"
+                color="text.secondary"
+              >
+                {[
+                  printOptions.profilePhone ? `Ph: ${profile.phone}` : "",
+                  printOptions.profileEmail ? profile.email : "",
+                ]
+                  .filter(Boolean)
+                  .join("  |  ")}
+              </Typography>
+            )}
+          </Box>
+        ) : (
+          <Box>
+            <Typography variant="h5" fontWeight={800} color="#2563eb">
+              INVOICE
             </Typography>
-            <Typography fontWeight={700}>{formatDate(invoiceDate)}</Typography>
+            <Typography variant="caption" color="text.secondary">
+              {invoiceNumber}
+            </Typography>
           </Box>
         )}
+
+        <Box sx={{ textAlign: { xs: "left", sm: "right" } }}>
+          {showProfileBlock && (
+            <>
+              <Typography variant="h5" fontWeight={800} color="#2563eb">
+                INVOICE
+              </Typography>
+              <Typography
+                variant="caption"
+                display="block"
+                color="text.secondary"
+                mb={0.5}
+              >
+                {invoiceNumber}
+              </Typography>
+            </>
+          )}
+          {printOptions.invoiceDate && (
+            <>
+              <Typography variant="caption" color="text.secondary">
+                Invoice Date
+              </Typography>
+              <Typography fontWeight={700}>
+                {formatDate(invoiceDate)}
+              </Typography>
+            </>
+          )}
+        </Box>
       </Stack>
 
       {/* Customer info */}
@@ -872,11 +1501,13 @@ function InvoicePreviewDialog({
   mode,
   onClose,
   onPrint,
+  onSavePdf,
 }: {
   data: InvoicePrintableProps;
   mode: "preview" | "view";
   onClose: () => void;
   onPrint: () => void;
+  onSavePdf: () => void;
 }) {
   return (
     <>
@@ -911,7 +1542,14 @@ function InvoicePreviewDialog({
           <InvoicePrintable {...data} />
         </Box>
       </DialogContent>
-      <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
+      <DialogActions
+        sx={{
+          p: 2,
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 1,
+        }}
+      >
         <Button
           onClick={onClose}
           color="inherit"
@@ -919,20 +1557,35 @@ function InvoicePreviewDialog({
         >
           {mode === "preview" ? "Cancel" : "Close"}
         </Button>
-        <Button
-          onClick={onPrint}
-          variant="contained"
-          startIcon={<PrintOutlined />}
-          sx={{
-            bgcolor: "#2563eb",
-            borderRadius: 2,
-            textTransform: "none",
-            boxShadow: "none",
-            "&:hover": { bgcolor: "#1d4ed8", boxShadow: "none" },
-          }}
-        >
-          {mode === "preview" ? "Print Now" : "Print"}
-        </Button>
+        <Stack direction="row" spacing={1.5}>
+          <Button
+            onClick={onSavePdf}
+            variant="outlined"
+            startIcon={<PictureAsPdfOutlined />}
+            sx={{
+              borderRadius: 2,
+              textTransform: "none",
+              borderColor: "#cbd5e1",
+              color: "#334155",
+            }}
+          >
+            Save as PDF
+          </Button>
+          <Button
+            onClick={onPrint}
+            variant="contained"
+            startIcon={<PrintOutlined />}
+            sx={{
+              bgcolor: "#2563eb",
+              borderRadius: 2,
+              textTransform: "none",
+              boxShadow: "none",
+              "&:hover": { bgcolor: "#1d4ed8", boxShadow: "none" },
+            }}
+          >
+            {mode === "preview" ? "Print Now" : "Print"}
+          </Button>
+        </Stack>
       </DialogActions>
     </>
   );
@@ -1164,6 +1817,7 @@ function UpdateEntryDialog({
 export default function InvoicePage() {
   const [invoices, setInvoices] = useState<Invoice[]>(demoInvoices);
 
+  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [customerType, setCustomerType] = useState<string>("All Types");
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null,
@@ -1202,6 +1856,20 @@ export default function InvoicePage() {
     setMessageId((value) => value + 1);
   };
 
+  const handleProfileChange = (newProfile: Profile | null) => {
+    setSelectedProfile(newProfile);
+    if (newProfile) {
+      setPrintOptions((prev) => ({
+        ...prev,
+        profileName: true,
+        profileLicense: true,
+        profilePhone: true,
+        profileEmail: true,
+        profileAddress: true,
+      }));
+    }
+  };
+
   const handleCustomerTypeChange = (newType: string) => {
     setCustomerType(newType);
     setSelectedCustomer(null);
@@ -1235,6 +1903,7 @@ export default function InvoicePage() {
   };
 
   const resetForm = () => {
+    setSelectedProfile(null);
     setCustomerType("All Types");
     setSelectedCustomer(null);
     setSelectedPO(null);
@@ -1263,6 +1932,7 @@ export default function InvoicePage() {
     setPrintPreview({
       invoiceNumber: generateInvoiceNumber(),
       invoiceDate: new Date().toISOString().slice(0, 10),
+      profile: selectedProfile,
       customer: selectedCustomer,
       po: selectedPO,
       entries: entries.map((e) => ({ ...e })),
@@ -1275,6 +1945,7 @@ export default function InvoicePage() {
     const newInvoice: Invoice = {
       id: `INV-${Date.now()}`,
       invoiceNumber: generateInvoiceNumber(),
+      profile: selectedProfile,
       customer: selectedCustomer,
       purchaseSerialNumber: selectedPO.serialNumber,
       invoiceDate: new Date().toISOString().slice(0, 10),
@@ -1288,11 +1959,46 @@ export default function InvoicePage() {
     notify("warning", "Invoice Saved But Not Printed.");
   };
 
+  const handleSavePdfFromForm = () => {
+    if (!canSubmit || !selectedCustomer || !selectedPO) return;
+    const invoiceNumber = generateInvoiceNumber();
+    const invoiceDate = new Date().toISOString().slice(0, 10);
+    const snapshotEntries = entries.map((e) => ({ ...e }));
+    const snapshotOptions = { ...printOptions };
+
+    downloadInvoicePdf({
+      invoiceNumber,
+      invoiceDate,
+      profile: selectedProfile,
+      customer: selectedCustomer,
+      poSerial: selectedPO.serialNumber,
+      entries: snapshotEntries,
+      printOptions: snapshotOptions,
+    });
+
+    const newInvoice: Invoice = {
+      id: `INV-${Date.now()}`,
+      invoiceNumber,
+      profile: selectedProfile,
+      customer: selectedCustomer,
+      purchaseSerialNumber: selectedPO.serialNumber,
+      invoiceDate,
+      entries: snapshotEntries,
+      printOptions: snapshotOptions,
+      printed: false,
+      createdAt: new Date().toISOString(),
+    };
+    setInvoices((prev) => [newInvoice, ...prev]);
+    resetForm();
+    notify("success", "Invoice saved and PDF downloaded successfully.");
+  };
+
   const handleConfirmPrintFromPreview = () => {
     if (!printPreview) return;
     const newInvoice: Invoice = {
       id: `INV-${Date.now()}`,
       invoiceNumber: printPreview.invoiceNumber,
+      profile: printPreview.profile,
       customer: printPreview.customer,
       purchaseSerialNumber: printPreview.po.serialNumber,
       invoiceDate: printPreview.invoiceDate,
@@ -1311,6 +2017,36 @@ export default function InvoicePage() {
     notify("success", "Invoice printed and saved successfully.");
   };
 
+  const handleSavePdfFromPreview = () => {
+    if (!printPreview) return;
+    downloadInvoicePdf({
+      invoiceNumber: printPreview.invoiceNumber,
+      invoiceDate: printPreview.invoiceDate,
+      profile: printPreview.profile,
+      customer: printPreview.customer,
+      poSerial: printPreview.po.serialNumber,
+      entries: printPreview.entries,
+      printOptions: printPreview.printOptions,
+    });
+
+    const newInvoice: Invoice = {
+      id: `INV-${Date.now()}`,
+      invoiceNumber: printPreview.invoiceNumber,
+      profile: printPreview.profile,
+      customer: printPreview.customer,
+      purchaseSerialNumber: printPreview.po.serialNumber,
+      invoiceDate: printPreview.invoiceDate,
+      entries: printPreview.entries,
+      printOptions: printPreview.printOptions,
+      printed: false,
+      createdAt: new Date().toISOString(),
+    };
+    setInvoices((prev) => [newInvoice, ...prev]);
+    setPrintPreview(null);
+    resetForm();
+    notify("success", "Invoice saved and PDF downloaded successfully.");
+  };
+
   const handlePrintFromView = () => {
     if (!viewingInvoice) return;
     window.print();
@@ -1327,11 +2063,26 @@ export default function InvoicePage() {
     }
   };
 
+  const handleSavePdfFromView = () => {
+    if (!viewingInvoice) return;
+    downloadInvoicePdf({
+      invoiceNumber: viewingInvoice.invoiceNumber,
+      invoiceDate: viewingInvoice.invoiceDate,
+      profile: viewingInvoice.profile,
+      customer: viewingInvoice.customer,
+      poSerial: viewingInvoice.purchaseSerialNumber,
+      entries: viewingInvoice.entries,
+      printOptions: viewingInvoice.printOptions,
+    });
+    notify("success", `PDF downloaded (${viewingInvoice.invoiceNumber}.pdf).`);
+  };
+
   // Prepare the printable data for the hidden print area
   const printAreaData: InvoicePrintableProps | null = printPreview
     ? {
         invoiceNumber: printPreview.invoiceNumber,
         invoiceDate: printPreview.invoiceDate,
+        profile: printPreview.profile,
         customer: printPreview.customer,
         poSerial: printPreview.po.serialNumber,
         entries: printPreview.entries,
@@ -1341,6 +2092,7 @@ export default function InvoicePage() {
       ? {
           invoiceNumber: viewingInvoice.invoiceNumber,
           invoiceDate: viewingInvoice.invoiceDate,
+          profile: viewingInvoice.profile,
           customer: viewingInvoice.customer,
           poSerial: viewingInvoice.purchaseSerialNumber,
           entries: viewingInvoice.entries,
@@ -1381,8 +2133,8 @@ export default function InvoicePage() {
             Invoice Management
           </Typography>
           <Typography variant="body2" color="text.secondary" mt={0.5}>
-            Generate, print, and track invoices against customer purchase
-            orders.
+            Generate, print, save as PDF, and track invoices against customer
+            purchase orders.
           </Typography>
         </Box>
         <Chip
@@ -1406,16 +2158,61 @@ export default function InvoicePage() {
             <SectionHeading
               icon={<BusinessOutlined />}
               title="Invoice Details"
-              subtitle="Select customer type, customer, and the related purchase order to load invoice products."
+              subtitle="Select company profile, customer type, customer, and the related purchase order to load invoice products."
             />
 
             <Box
               sx={{
                 display: "grid",
-                gridTemplateColumns: { xs: "1fr", md: "1fr 1fr 1fr" },
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "1fr 1fr",
+                  lg: "1fr 1fr 1fr 1fr",
+                },
                 gap: 2,
               }}
             >
+              <Autocomplete
+                fullWidth
+                size="small"
+                options={profiles}
+                value={selectedProfile}
+                onChange={(_, value) => handleProfileChange(value)}
+                getOptionLabel={(option) => option.name}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                renderOption={(props, option) => {
+                  const { key, ...rest } = props;
+                  return (
+                    <Box
+                      component="li"
+                      key={key}
+                      {...rest}
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 0.25,
+                        py: 1,
+                      }}
+                    >
+                      <Typography fontWeight={600} fontSize={13}>
+                        {option.name}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {option.phone} · {option.address}
+                      </Typography>
+                    </Box>
+                  );
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Company Profile"
+                    placeholder="Select profile..."
+                    sx={fieldSx}
+                  />
+                )}
+              />
+
               <TextField
                 select
                 fullWidth
@@ -1504,7 +2301,7 @@ export default function InvoicePage() {
               />
             </Box>
 
-            {(selectedCustomer || selectedPO) && (
+            {(selectedProfile || selectedCustomer || selectedPO) && (
               <Stack
                 direction="row"
                 spacing={1}
@@ -1512,6 +2309,17 @@ export default function InvoicePage() {
                 useFlexGap
                 alignItems="center"
               >
+                {selectedProfile && (
+                  <Chip
+                    size="small"
+                    label={`Profile: ${selectedProfile.name}`}
+                    sx={{
+                      bgcolor: "#f5f3ff",
+                      color: "#6d28d9",
+                      fontWeight: 600,
+                    }}
+                  />
+                )}
                 {selectedCustomer && (
                   <Chip
                     size="small"
@@ -1710,16 +2518,93 @@ export default function InvoicePage() {
         </Card>
       )}
 
-      {/* Print Options */}
+      {/* Print & PDF Options */}
       <Card sx={{ ...cardSx, mt: 3 }}>
         <CardContent
           sx={{ p: { xs: 2, sm: 3, md: 3.5 }, "&:last-child": { pb: 3.5 } }}
         >
           <SectionHeading
             icon={<PrintOutlined />}
-            title="Print Options"
-            subtitle="Tick the fields to include in the printed invoice. All fields are ticked by default."
+            title="Print & PDF Options"
+            subtitle="Tick the fields to include in the printed invoice and PDF. All fields are ticked by default."
           />
+
+          {/* Profile Print Options */}
+          <Box
+            sx={{
+              p: 2,
+              mb: 2.5,
+              borderRadius: 2,
+              bgcolor: selectedProfile ? "#f8fafc" : "#fafafa",
+              border: "1px solid #e8edf3",
+            }}
+          >
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              justifyContent="space-between"
+              alignItems={{ xs: "flex-start", sm: "center" }}
+              spacing={1}
+              mb={1}
+            >
+              <Typography fontWeight={700} fontSize={13} color="#334155">
+                Profile Fields
+              </Typography>
+              <Chip
+                size="small"
+                label={
+                  selectedProfile
+                    ? `Enabled (${selectedProfile.name})`
+                    : "Select a company profile to enable"
+                }
+                sx={{
+                  height: 22,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  bgcolor: selectedProfile ? "#dcfce7" : "#f1f5f9",
+                  color: selectedProfile ? "#15803d" : "#64748b",
+                }}
+              />
+            </Stack>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr 1fr",
+                  sm: "1fr 1fr 1fr",
+                  md: "1fr 1fr 1fr 1fr 1fr",
+                },
+                gap: 1,
+              }}
+            >
+              {profilePrintOptionFields.map(({ key, label }) => (
+                <FormControlLabel
+                  key={key}
+                  disabled={!selectedProfile}
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={printOptions[key]}
+                      onChange={() => togglePrintOption(key)}
+                    />
+                  }
+                  label={
+                    <Typography
+                      fontSize={13}
+                      color={selectedProfile ? "text.primary" : "text.disabled"}
+                    >
+                      {label}
+                    </Typography>
+                  }
+                  sx={{ mr: 0, "& .MuiFormControlLabel-label": { ml: 0.5 } }}
+                />
+              ))}
+            </Box>
+          </Box>
+
+          {/* Invoice, Customer & Product Print Options */}
+          <Typography fontWeight={700} fontSize={13} color="#334155" mb={1}>
+            Invoice, Customer & Product Fields
+          </Typography>
           <Box
             sx={{
               display: "grid",
@@ -1772,10 +2657,30 @@ export default function InvoicePage() {
           Save Invoice
         </Button>
         <Button
+          variant="outlined"
+          startIcon={<PictureAsPdfOutlined />}
+          onClick={handleSavePdfFromForm}
+          disabled={!canSubmit}
+          sx={{
+            textTransform: "none",
+            borderRadius: 2,
+            borderColor: "#bfdbfe",
+            bgcolor: "#eff6ff",
+            color: "#1d4ed8",
+            height: 42,
+            "&:hover": {
+              borderColor: "#93c5fd",
+              bgcolor: "#dbeafe",
+            },
+          }}
+        >
+          Save in PDF
+        </Button>
+        <Button
           variant="contained"
           startIcon={<PrintOutlined />}
-          onClick={handlePrintClick}
           disabled={!canSubmit}
+          onClick={handlePrintClick}
           sx={{
             bgcolor: "#2563eb",
             borderRadius: 2,
@@ -1860,6 +2765,11 @@ export default function InvoicePage() {
                         >
                           {inv.invoiceNumber}
                         </Typography>
+                        {inv.profile && (
+                          <Typography variant="caption" color="text.secondary">
+                            {inv.profile.name}
+                          </Typography>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Typography fontWeight={700} fontSize={13}>
@@ -1969,6 +2879,7 @@ export default function InvoicePage() {
             data={{
               invoiceNumber: printPreview.invoiceNumber,
               invoiceDate: printPreview.invoiceDate,
+              profile: printPreview.profile,
               customer: printPreview.customer,
               poSerial: printPreview.po.serialNumber,
               entries: printPreview.entries,
@@ -1976,6 +2887,7 @@ export default function InvoicePage() {
             }}
             onClose={() => setPrintPreview(null)}
             onPrint={handleConfirmPrintFromPreview}
+            onSavePdf={handleSavePdfFromPreview}
           />
         )}
       </Dialog>
@@ -1994,6 +2906,7 @@ export default function InvoicePage() {
             data={{
               invoiceNumber: viewingInvoice.invoiceNumber,
               invoiceDate: viewingInvoice.invoiceDate,
+              profile: viewingInvoice.profile,
               customer: viewingInvoice.customer,
               poSerial: viewingInvoice.purchaseSerialNumber,
               entries: viewingInvoice.entries,
@@ -2001,11 +2914,11 @@ export default function InvoicePage() {
             }}
             onClose={() => setViewingInvoice(null)}
             onPrint={handlePrintFromView}
+            onSavePdf={handleSavePdfFromView}
           />
         )}
       </Dialog>
 
-      
       {/* Custom Alert popup */}
       {message && (
         <Alert
