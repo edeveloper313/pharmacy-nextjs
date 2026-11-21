@@ -10,6 +10,8 @@ import {
   IconShoppingBag,
   IconUserPlus,
   IconHeartHandshake,
+  IconHistory,
+  IconListDetails,
 } from "@tabler/icons-react";
 
 import { uniqueId } from "lodash";
@@ -41,7 +43,7 @@ const Menuitems = [
   // =========================
   {
     navlabel: true,
-    subheader: "SALES MANAGEMENT",
+    subheader: "PRODUCT MANAGEMENT",
   },
   {
     id: uniqueId(),
@@ -49,18 +51,12 @@ const Menuitems = [
     icon: IconPackage,
     href: "/dashboard/product-order",
   },
-    {
+  {
     id: uniqueId(),
     title: "Master Product",
     icon: IconPackage,
     href: "/dashboard/master-product",
   },
-  // {
-  //   id: uniqueId(),
-  //   title: "Sale Order Entry",
-  //   icon: IconShoppingCart,
-  //   href: "/dashboard/sale-order-entry",
-  // },
 
   {
     id: uniqueId(),
@@ -68,7 +64,25 @@ const Menuitems = [
     icon: IconShoppingBag,
     href: "/dashboard/all-products",
   },
-
+  // =========================
+  // 3. SALE PORDUCT
+  // =========================
+  {
+    navlabel: true,
+    subheader: "SALE PRODUCT ",
+  },
+  {
+    id: uniqueId(),
+    title: "Sale Order Entry",
+    icon: IconShoppingCart,
+    href: "/dashboard/sale-order-entry",
+  },
+  {
+    id: uniqueId(),
+    title: "Sale Order List",
+    icon: IconListDetails,
+    href: "/dashboard/sale-order-list",
+  },
   // =========================
   // 3. PURCHASE MANAGEMENT
   // =========================
@@ -94,19 +108,7 @@ const Menuitems = [
     icon: IconChartBar,
     href: "/dashboard/purchase-order-status",
   },
-  // =========================
-  // 3. SALE PORDUCT
-  // =========================
-  {
-    navlabel: true,
-    subheader: "SALE PRODUCT ",
-  },
-  {
-    id: uniqueId(),
-    title: "Sale Product",
-    icon: IconTruck,
-  href: "/dashboard/",
-  },
+
   // =========================
   // 4. MASTER DATA
   // =========================
