@@ -49,6 +49,12 @@ const Menuitems = [
     icon: IconPackage,
     href: "/dashboard/product-order",
   },
+    {
+    id: uniqueId(),
+    title: "Master Product",
+    icon: IconPackage,
+    href: "/dashboard/master-product",
+  },
   // {
   //   id: uniqueId(),
   //   title: "Sale Order Entry",
@@ -96,12 +102,7 @@ const Menuitems = [
     navlabel: true,
     subheader: "MASTER DATA",
   },
-  {
-    id: uniqueId(),
-    title: "Master Product Entry",
-    icon: IconPackage,
-    href: "/dashboard/master-product-entry",
-  },
+
   {
     id: uniqueId(),
     title: "Customer",

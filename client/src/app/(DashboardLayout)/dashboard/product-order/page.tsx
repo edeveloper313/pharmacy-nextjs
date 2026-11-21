@@ -654,6 +654,16 @@ export default function ProductPage() {
                 </MenuItem>
               ))}
             </TextField>
+            <TextField
+              fullWidth
+              size="small"
+              label="Price"
+              name="price"
+              type="number"
+              value={form.price}
+              onChange={handleChange}
+              inputProps={{ min: 0, step: "1" }}
+            />
 
             <TextField
               fullWidth
@@ -1141,7 +1151,7 @@ export default function ProductPage() {
               required
               size="small"
               select
-              label="Unit *"
+              label="Unit"
               name="unit"
               value={form.unit}
               onChange={handleChange}
@@ -1159,12 +1169,12 @@ export default function ProductPage() {
             <TextField
               fullWidth
               size="small"
-              label="Price ($)"
+              label="Price"
               name="price"
               type="number"
               value={form.price}
               onChange={handleChange}
-              inputProps={{ min: 0, step: "0.01" }}
+              inputProps={{ min: 0, step: "1" }}
             />
 
             <TextField
