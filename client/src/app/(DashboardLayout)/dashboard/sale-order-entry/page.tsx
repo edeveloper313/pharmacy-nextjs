@@ -61,6 +61,9 @@ type SalesEntry = {
   serialNumber: string;
   productName: string;
   productId: string;
+  currentStock: number;
+  isMasterProduct: boolean;
+  regularPrice: number | null;
   quantity: number;
   tp: number;
   discountPercent: number;
@@ -73,6 +76,9 @@ type FormState = {
   serialNumber: string;
   productName: string;
   productId: string;
+  currentStock: string;
+  isMasterProduct: boolean;
+  regularPrice: string;
   quantity: string;
   tp: string;
   discount: string;
@@ -82,6 +88,9 @@ const emptyForm: FormState = {
   serialNumber: "",
   productName: "",
   productId: "",
+  currentStock: "",
+  isMasterProduct: false,
+  regularPrice: "",
   quantity: "",
   tp: "",
   discount: "",
@@ -135,6 +144,65 @@ const customers: Customer[] = [
     city: "Karachi",
   },
 ];
+
+type Product = {
+  id: string;
+  name: string;
+  stock: number;
+  defaultPrice: number;
+};
+
+const products: Product[] = [
+  { id: "PRD-1001", name: "Paracetamol 500mg", stock: 420, defaultPrice: 180 },
+  { id: "PRD-1002", name: "Amoxicillin 250mg", stock: 180, defaultPrice: 320 },
+  { id: "PRD-1003", name: "Vitamin C 500mg", stock: 95, defaultPrice: 240 },
+  {
+    id: "PRD-1004",
+    name: "Surgical Gloves (Box)",
+    stock: 60,
+    defaultPrice: 850,
+  },
+  {
+    id: "PRD-1005",
+    name: "Blood Pressure Monitor",
+    stock: 24,
+    defaultPrice: 4200,
+  },
+  {
+    id: "PRD-1006",
+    name: "Antiseptic Solution 500ml",
+    stock: 130,
+    defaultPrice: 410,
+  },
+  {
+    id: "PRD-1007",
+    name: "Disposable Syringe 5ml",
+    stock: 900,
+    defaultPrice: 22,
+  },
+  { id: "PRD-1008", name: "Digital Thermometer", stock: 45, defaultPrice: 950 },
+];
+
+// Demo configuration: each customer has an independent Master Product list.
+const masterProductsByCustomer: Record<string, string[]> = {
+  "CUS-001": ["PRD-1001", "PRD-1004", "PRD-1007"],
+  "CUS-002": ["PRD-1002", "PRD-1003"],
+  "CUS-003": ["PRD-1001", "PRD-1006"],
+  "CUS-004": ["PRD-1003", "PRD-1008"],
+  "CUS-005": ["PRD-1004", "PRD-1005"],
+  "CUS-006": ["PRD-1002", "PRD-1007"],
+};
+
+// Fixed Master Product prices are also customer-specific (demo values in PKR).
+const masterPricesByCustomer: Record<string, Record<string, number>> = {
+  "CUS-001": { "PRD-1001": 175, "PRD-1004": 825, "PRD-1007": 20 },
+  "CUS-002": { "PRD-1002": 310, "PRD-1003": 230 },
+  "CUS-003": { "PRD-1001": 170, "PRD-1006": 395 },
+  "CUS-004": { "PRD-1003": 225, "PRD-1008": 925 },
+  "CUS-005": { "PRD-1004": 810, "PRD-1005": 4100 },
+  "CUS-006": { "PRD-1002": 300, "PRD-1007": 19 },
+};
+
 const customerTypes: CustomerType[] = [
   "Clinic",
   "Doctor",
@@ -212,14 +280,19 @@ function Section({ icon, title, subtitle, children }: SectionProps) {
    ========================================================================= */
 
 export default function HospitalRecoveryEntryPage() {
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  };
   // Header state
   const [customerTypeFilter, setCustomerTypeFilter] = useState<string>("");
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [orderNumber, setOrderNumber] = useState("");
-  const [orderDate, setOrderDate] = useState("");
+  const [orderDate, setOrderDate] = useState(getTodayDate());
 
   // Entry-form state
   const [form, setForm] = useState<FormState>({ ...emptyForm });
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [entries, setEntries] = useState<SalesEntry[]>([]);
 
   // Toast (your custom Alert auto-hides after 2s)
@@ -249,6 +322,26 @@ export default function HospitalRecoveryEntryPage() {
   const grossAmount = qty * tp;
   const discountAmount = grossAmount * (discountPercent / 100);
   const lineTotal = Math.max(0, grossAmount - discountAmount);
+  const isMasterProduct = Boolean(
+    customer &&
+    selectedProduct &&
+    (masterProductsByCustomer[customer.id] || []).includes(selectedProduct.id),
+  );
+  const alreadyAddedQty = selectedProduct
+    ? entries
+        .filter((entry) => entry.productId === selectedProduct.id)
+        .reduce((sum, entry) => sum + entry.quantity, 0)
+    : 0;
+  const availableStock = selectedProduct
+    ? Math.max(0, selectedProduct.stock - alreadyAddedQty)
+    : 0;
+  const stockExceeded = Boolean(selectedProduct && qty > availableStock);
+  const belowRegularPrice = Boolean(
+    selectedProduct &&
+    !isMasterProduct &&
+    form.tp !== "" &&
+    tp < Number(form.regularPrice),
+  );
 
   /* ------- Totals ------- */
   const totalQuantity = entries.reduce((s, e) => s + e.quantity, 0);
@@ -261,6 +354,51 @@ export default function HospitalRecoveryEntryPage() {
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    setMessage(null);
+  };
+
+  const handleProductSelect = (product: Product | null) => {
+    setSelectedProduct(product);
+    if (!product) {
+      setForm((prev) => ({
+        ...prev,
+        productName: "",
+        productId: "",
+        currentStock: "",
+        tp: "",
+        regularPrice: "",
+        quantity: "",
+        isMasterProduct: false,
+      }));
+      return;
+    }
+    const master = Boolean(
+      customer &&
+      (masterProductsByCustomer[customer.id] || []).includes(product.id),
+    );
+    const customerMasterPrice = customer
+      ? masterPricesByCustomer[customer.id]?.[product.id]
+      : undefined;
+    const selectedPrice = master
+      ? (customerMasterPrice ?? product.defaultPrice)
+      : product.defaultPrice;
+    const remainingStock = Math.max(
+      0,
+      product.stock -
+        entries
+          .filter((entry) => entry.productId === product.id)
+          .reduce((sum, entry) => sum + entry.quantity, 0),
+    );
+    setForm((prev) => ({
+      ...prev,
+      productName: product.name,
+      productId: product.id,
+      currentStock: String(remainingStock),
+      isMasterProduct: master,
+      regularPrice: master ? "" : String(product.defaultPrice),
+      tp: String(selectedPrice),
+      quantity: "",
+    }));
     setMessage(null);
   };
 
@@ -277,6 +415,21 @@ export default function HospitalRecoveryEntryPage() {
       !form.tp
     ) {
       showMessage("error", "Please complete all required entry fields.");
+      return;
+    }
+    if (!selectedProduct) {
+      showMessage("error", "Please select a product from the product search.");
+      return;
+    }
+    if (stockExceeded) {
+      showMessage("error", "Selected quantity exceeds current stock quantity.");
+      return;
+    }
+    if (belowRegularPrice) {
+      showMessage(
+        "error",
+        `Price cannot be less than the regular price (${money(Number(form.regularPrice))}).`,
+      );
       return;
     }
     if (qty <= 0 || tp < 0 || discountPercent < 0 || discountPercent > 100) {
@@ -298,10 +451,13 @@ export default function HospitalRecoveryEntryPage() {
     }
 
     const newEntry: SalesEntry = {
-      id: Date.now(), 
+      id: Date.now(),
       serialNumber: form.serialNumber.trim(),
       productName: form.productName.trim(),
       productId: form.productId.trim(),
+      currentStock: availableStock,
+      isMasterProduct,
+      regularPrice: isMasterProduct ? null : Number(form.regularPrice),
       quantity: qty,
       tp,
       discountPercent,
@@ -309,16 +465,12 @@ export default function HospitalRecoveryEntryPage() {
       lineTotal,
     };
     setEntries((prev) => [...prev, newEntry]);
-    setForm({ ...emptyForm });
-    showMessage("success", "Entry added to the sales order.");
-    
-
+    setSelectedProduct(null);
     setForm({
       ...emptyForm,
-      productId: `PRD-${Math.floor(10000 + Math.random() * 90000)}`,
+      productId: ``,
       serialNumber: `SR-${Math.floor(10000 + Math.random() * 90000)}`,
     });
-
     showMessage("success", "Entry added to the sales order.");
   };
 
@@ -331,6 +483,7 @@ export default function HospitalRecoveryEntryPage() {
     setOrderNumber("");
     setOrderDate("");
     setForm({ ...emptyForm });
+    setSelectedProduct(null);
     setEntries([]);
     setMessage(null);
   };
@@ -364,6 +517,7 @@ export default function HospitalRecoveryEntryPage() {
 
     // Clear Customer & Order Date
     setCustomer(null);
+    setSelectedProduct(null);
     setCustomerTypeFilter("");
     setOrderDate("");
 
@@ -383,15 +537,6 @@ export default function HospitalRecoveryEntryPage() {
   // Genrate Order Number
   useEffect(() => {
     setOrderNumber(`SO-${Math.floor(100000 + Math.random() * 900000)}`);
-  }, []);
-
-  // Genrate Prodcut ID
-
-  useEffect(() => {
-    setForm((prev) => ({
-      ...prev,
-      productId: `PRD-${Math.floor(10000 + Math.random() * 90000)}`,
-    }));
   }, []);
 
   // Genrate serialNumber
@@ -490,6 +635,8 @@ export default function HospitalRecoveryEntryPage() {
                   value={customer}
                   onChange={(_, value) => {
                     setCustomer(value);
+                    setSelectedProduct(null);
+                    setForm({ ...emptyForm, serialNumber: form.serialNumber });
                     setMessage(null);
                   }}
                   getOptionLabel={(o) => o.name}
@@ -609,7 +756,7 @@ export default function HospitalRecoveryEntryPage() {
             <Section
               icon={<Inventory2Outlined />}
               title="Product Entry"
-              subtitle="Enter one product at a time, then click Add to List."
+              subtitle="Search products for the selected customer. Master Product rules and stock are customer-specific."
             >
               <Box sx={gridSx}>
                 <TextField
@@ -622,16 +769,72 @@ export default function HospitalRecoveryEntryPage() {
                   placeholder="Auto Generated"
                   sx={fieldSx}
                 />
-                <TextField
+                <Autocomplete
                   fullWidth
-                  required
-                  size="small"
-                  label="Product Name"
-                  name="productName"
-                  value={form.productName}
-                  onChange={handleFormChange}
-                  placeholder="e.g. Paracetamol 500mg"
-                  sx={fieldSx}
+                  options={products}
+                  value={selectedProduct}
+                  onChange={(_, value) => handleProductSelect(value)}
+                  getOptionLabel={(option) => option.name}
+                  isOptionEqualToValue={(option, value) =>
+                    option.id === value.id
+                  }
+                  filterOptions={(options, state) => {
+                    const keyword = state.inputValue.trim().toLowerCase();
+                    return keyword
+                      ? options.filter(
+                          (product) =>
+                            product.name.toLowerCase().includes(keyword) ||
+                            product.id.toLowerCase().includes(keyword),
+                        )
+                      : options;
+                  }}
+                  disabled={!customer}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      required
+                      size="small"
+                      label="Search Product"
+                      placeholder={
+                        customer
+                          ? "Type product name or ID..."
+                          : "Select customer first"
+                      }
+                      sx={fieldSx}
+                    />
+                  )}
+                  renderOption={(props, option) => {
+                    const isMaster = Boolean(
+                      customer &&
+                      (masterProductsByCustomer[customer.id] || []).includes(
+                        option.id,
+                      ),
+                    );
+                    return (
+                      <Box
+                        component="li"
+                        {...props}
+                        key={option.id}
+                        sx={{
+                          display: "flex !important",
+                          justifyContent: "space-between !important",
+                          gap: 1,
+                        }}
+                      >
+                        <Box minWidth={0}>
+                          <Typography fontWeight={600} fontSize={13}>
+                            {option.name}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {option.id}
+                          </Typography>
+                        </Box>
+                        {isMaster && (
+                          <Chip size="small" color="primary" label="Master" />
+                        )}
+                      </Box>
+                    );
+                  }}
                 />
                 <TextField
                   fullWidth
@@ -645,6 +848,15 @@ export default function HospitalRecoveryEntryPage() {
                 />
                 <TextField
                   fullWidth
+                  size="small"
+                  label="Current Stock Qty"
+                  value={form.currentStock}
+                  InputProps={{ readOnly: true }}
+                  placeholder="Select a product"
+                  sx={fieldSx}
+                />
+                <TextField
+                  fullWidth
                   required
                   size="small"
                   type="number"
@@ -653,20 +865,47 @@ export default function HospitalRecoveryEntryPage() {
                   value={form.quantity}
                   onChange={handleFormChange}
                   placeholder="e.g. 100"
-                  inputProps={{ min: 1 }}
+                  inputProps={{ min: 1, max: availableStock || undefined }}
+                  error={stockExceeded}
+                  helperText={
+                    stockExceeded ? `Available stock: ${availableStock}` : " "
+                  }
                   sx={fieldSx}
                 />
+                {!isMasterProduct && selectedProduct && (
+                  <TextField
+                    fullWidth
+                    size="small"
+                    type="number"
+                    label="Regular Price (PKR)"
+                    value={form.regularPrice}
+                    InputProps={{ readOnly: true }}
+                    sx={fieldSx}
+                    helperText="Minimum selling price for this customer."
+                  />
+                )}
                 <TextField
                   fullWidth
                   required
                   size="small"
                   type="number"
-                  label="TP (Trade Price)"
+                  label={
+                    isMasterProduct ? "Price (PKR)" : "Selling Price (PKR)"
+                  }
                   name="tp"
                   value={form.tp}
                   onChange={handleFormChange}
                   placeholder="e.g. 250.00"
-                  inputProps={{ min: 0, step: "0.01" }}
+                  InputProps={{ readOnly: isMasterProduct }}
+                  inputProps={{
+                    min: isMasterProduct ? 0 : Number(form.regularPrice) || 0,
+                    step: "0.01",
+                  }}
+                  helperText={
+                    isMasterProduct
+                      ? "Master Product price is fixed."
+                      : "Cannot be lower than Regular Price."
+                  }
                   sx={fieldSx}
                 />
                 <TextField
@@ -683,6 +922,32 @@ export default function HospitalRecoveryEntryPage() {
                   sx={fieldSx}
                 />
               </Box>
+
+              {(isMasterProduct || stockExceeded || belowRegularPrice) && (
+                <Stack direction="row" flexWrap="wrap" gap={1} mt={1.5}>
+                  {isMasterProduct && (
+                    <Chip
+                      color="primary"
+                      size="small"
+                      label="Master Product Selected"
+                    />
+                  )}
+                  {stockExceeded && (
+                    <Chip
+                      color="error"
+                      size="small"
+                      label="You have selected a quantity greater than the available quantity."
+                    />
+                  )}
+                  {belowRegularPrice && (
+                    <Chip
+                      color="error"
+                      size="small"
+                      label="The price cannot be lower than the regular price."
+                    />
+                  )}
+                </Stack>
+              )}
 
               {/* Live line preview */}
               <Box
@@ -736,23 +1001,23 @@ export default function HospitalRecoveryEntryPage() {
                 justifyContent="flex-end"
                 mt={2}
               >
-           <Button
-  type="button"
-  variant="contained"
-  startIcon={<AddOutlined />}
-  onClick={handleAddEntry}
-  sx={{
-    bgcolor: "#2563eb",
-    borderRadius: 2,
-    textTransform: "none",
-    boxShadow: "none",
-    minHeight: 42,
-    px: 3,
-    "&:hover": { bgcolor: "#1d4ed8", boxShadow: "none" },
-  }}
->
-  Add to List
-</Button>
+                <Button
+                  type="button"
+                  variant="contained"
+                  startIcon={<AddOutlined />}
+                  onClick={handleAddEntry}
+                  sx={{
+                    bgcolor: "#2563eb",
+                    borderRadius: 2,
+                    textTransform: "none",
+                    boxShadow: "none",
+                    minHeight: 42,
+                    px: 3,
+                    "&:hover": { bgcolor: "#1d4ed8", boxShadow: "none" },
+                  }}
+                >
+                  Add to List
+                </Button>
               </Stack>
             </Section>
 
@@ -790,13 +1055,14 @@ export default function HospitalRecoveryEntryPage() {
                     overflowX: "auto",
                   }}
                 >
-                  <Table size="small" sx={{ minWidth: 780 }}>
+                  <Table size="small" sx={{ minWidth: 860 }}>
                     <TableHead>
                       <TableRow sx={{ bgcolor: "#f8fafc" }}>
                         {[
                           "Serial #",
                           "Product Name",
                           "Product ID",
+                          "Stock at Entry",
                           "Qty",
                           "TP",
                           "Discount",
@@ -827,11 +1093,22 @@ export default function HospitalRecoveryEntryPage() {
                           </TableCell>
                           <TableCell sx={{ fontSize: 12, minWidth: 140 }}>
                             {entry.productName}
+                            {entry.isMasterProduct && (
+                              <Chip
+                                size="small"
+                                color="primary"
+                                label="Master"
+                                sx={{ ml: 1 }}
+                              />
+                            )}
                           </TableCell>
                           <TableCell
                             sx={{ fontSize: 12, whiteSpace: "nowrap" }}
                           >
                             {entry.productId}
+                          </TableCell>
+                          <TableCell sx={{ fontSize: 12 }}>
+                            {entry.currentStock}
                           </TableCell>
                           <TableCell sx={{ fontSize: 12 }}>
                             {entry.quantity}

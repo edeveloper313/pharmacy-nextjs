@@ -94,7 +94,19 @@ const Menuitems = [
     icon: IconChartBar,
     href: "/dashboard/purchase-order-status",
   },
-
+  // =========================
+  // 3. SALE PORDUCT
+  // =========================
+  {
+    navlabel: true,
+    subheader: "SALE PRODUCT ",
+  },
+  {
+    id: uniqueId(),
+    title: "Sale Product",
+    icon: IconTruck,
+  href: "/dashboard/",
+  },
   // =========================
   // 4. MASTER DATA
   // =========================
