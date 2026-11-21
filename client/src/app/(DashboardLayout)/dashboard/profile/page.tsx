@@ -1,7 +1,6 @@
-
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 
 import {
   Box,
@@ -14,121 +13,320 @@ import {
   Avatar,
   Chip,
   IconButton,
-  InputAdornment,
   Stack,
   Divider,
+  Tooltip,
   AlertColor,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 
 import {
-  CloudUpload,
   Save,
-  Visibility,
-  VisibilityOff,
-  PersonOutline,
-  LocalPharmacyOutlined,
-  LockOutlined,
-  CameraAltOutlined,
+  AddBusinessOutlined,
   BusinessOutlined,
+  LocationOnOutlined,
+  PhoneOutlined,
+  WhatsApp,
+  BadgeOutlined,
+  CheckCircle,
+  DeleteOutline,
+  RestartAlt,
+  EditOutlined,
+  ContentCopyOutlined,
+  Check,
+  Close,
 } from "@mui/icons-material";
 
 import Alert from "@/app/components/Alert";
 
+/* -------------------- Types -------------------- */
+
+type CompanyProfile = {
+  id: number;
+  companyName: string;
+  companyAddress: string;
+  companyPhone: string;
+  companyWhatsapp: string;
+  companyNtn: string;
+};
+
+type FormState = {
+  companyName: string;
+  companyAddress: string;
+  companyPhone: string;
+  companyWhatsapp: string;
+  companyNtn: string;
+};
+
+const EMPTY_FORM: FormState = {
+  companyName: "",
+  companyAddress: "",
+  companyPhone: "",
+  companyWhatsapp: "",
+  companyNtn: "",
+};
+
+/* -------------------- Small helper -------------------- */
+
+function InfoRow({ icon, text }: { icon: React.ReactNode; text: string }) {
+  return (
+    <Stack direction="row" spacing={1} alignItems="center">
+      <Box
+        sx={{ color: "#94a3b8", display: "flex", "& svg": { fontSize: 16 } }}
+      >
+        {icon}
+      </Box>
+      <Typography
+        variant="body2"
+        color="text.secondary"
+        noWrap
+        sx={{ fontSize: 13 }}
+      >
+        {text || "—"}
+      </Typography>
+    </Stack>
+  );
+}
+
+function formatOfficialDetails(p: CompanyProfile): string {
+  const lines = [
+    `Company Name : ${p.companyName}`,
+    `Address      : ${p.companyAddress}`,
+    `Phone        : ${p.companyPhone}`,
+  ];
+  if (p.companyWhatsapp) lines.push(`WhatsApp     : ${p.companyWhatsapp}`);
+  if (p.companyNtn) lines.push(`NTN          : ${p.companyNtn}`);
+  return lines.join("\n");
+}
+
+/* -------------------- Page -------------------- */
 
 export default function ProfilePage() {
-  const [showPass, setShowPass] = useState(false);
+  const [profiles, setProfiles] = useState<CompanyProfile[]>([]);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
-  const [profileImage, setProfileImage] = useState("/avatar.png");
-  const [pharmacyLogo, setPharmacyLogo] = useState<string | null>(null);
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<CompanyProfile | null>(null);
+  const [copiedId, setCopiedId] = useState<number | null>(null);
 
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [showError, setShowError] = useState(false);
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof FormState, string>>
+  >({});
 
-const [alert, setAlert] = useState<
-  { id: number; type: AlertColor; message: string } | null
->(null);
+  const [alert, setAlert] = useState<{
+    id: number;
+    type: AlertColor;
+    message: string;
+  } | null>(null);
 
-const showAlert = (type: AlertColor, message: string) => {
-  setAlert({ id: Date.now(), type, message });
-};
-  const formRef = useRef<HTMLFormElement>(null);
+  const formCardRef = useRef<HTMLDivElement | null>(null);
 
-  // Profile Image Upload
-  const handleProfileImage = (e) => {
-    const file = e.target.files?.[0];
-
-    if (!file) return;
-
-    if (file.size > 2 * 1024 * 1024) {
-      setShowError(true);
-      setShowSuccess(false);
-      return;
-    }
-
-    setProfileImage(URL.createObjectURL(file));
+  const showAlert = (type: AlertColor, message: string) => {
+    setAlert({ id: Date.now(), type, message });
   };
 
-  // Pharmacy Logo Upload
-  const handleLogoUpload = (e) => {
-    const file = e.target.files?.[0];
+  /* ---------- Form handlers ---------- */
 
-    if (!file) return;
-
-    if (file.size > 2 * 1024 * 1024) {
-      setShowError(true);
-      setShowSuccess(false);
-      return;
-    }
-
-    setPharmacyLogo(URL.createObjectURL(file));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name as keyof FormState]: value }));
+    setErrors((prev) => ({ ...prev, [name as keyof FormState]: "" }));
   };
 
-  // Save Profile
-  const handleSubmit = async (e) => {
+  const validate = () => {
+    const next: Partial<Record<keyof FormState, string>> = {};
+    if (!form.companyName.trim())
+      next.companyName = "Company name is required.";
+    if (!form.companyAddress.trim())
+      next.companyAddress = "Company address is required.";
+    if (!form.companyPhone.trim())
+      next.companyPhone = "Phone number is required.";
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
+  const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
 
-    setShowSuccess(false);
-    setShowError(false);
+    if (!validate()) {
+      showAlert("error", "Please fill all required fields correctly.");
+      return;
+    }
 
+    const cleaned: FormState = {
+      companyName: form.companyName.trim(),
+      companyAddress: form.companyAddress.trim(),
+      companyPhone: form.companyPhone.trim(),
+      companyWhatsapp: form.companyWhatsapp.trim(),
+      companyNtn: form.companyNtn.trim(),
+    };
+
+    if (editingId !== null) {
+      setProfiles((prev) =>
+        prev.map((p) => (p.id === editingId ? { ...p, ...cleaned } : p)),
+      );
+      setEditingId(null);
+      setForm(EMPTY_FORM);
+      setErrors({});
+      showAlert("success", "Company profile updated successfully.");
+      return;
+    }
+
+    const profile: CompanyProfile = {
+      id: Date.now(),
+      ...cleaned,
+    };
+
+    setProfiles((prev) => [profile, ...prev]);
+    if (selectedId === null) setSelectedId(profile.id);
+
+    setForm(EMPTY_FORM);
+    setErrors({});
+    showAlert("success", "Company profile saved successfully.");
+  };
+
+  const handleReset = () => {
+    setForm(EMPTY_FORM);
+    setErrors({});
+    setEditingId(null);
+  };
+
+  /* ---------- Grid handlers ---------- */
+
+  const handleSelect = (id: number) => {
+    if (selectedId === id) return;
+    setSelectedId(id);
+    const p = profiles.find((x) => x.id === id);
+    if (p) showAlert("info", `"${p.companyName}" selected as active profile.`);
+  };
+
+  const handleEditStart = (p: CompanyProfile) => {
+    setEditingId(p.id);
+    setForm({
+      companyName: p.companyName,
+      companyAddress: p.companyAddress,
+      companyPhone: p.companyPhone,
+      companyWhatsapp: p.companyWhatsapp,
+      companyNtn: p.companyNtn,
+    });
+    setErrors({});
+    formCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handleDeleteRequest = (p: CompanyProfile) => {
+    setDeleteTarget(p);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!deleteTarget) return;
+    const removed = deleteTarget;
+
+    setProfiles((prev) => prev.filter((p) => p.id !== removed.id));
+    if (selectedId === removed.id) setSelectedId(null);
+    if (editingId === removed.id) {
+      setEditingId(null);
+      setForm(EMPTY_FORM);
+      setErrors({});
+    }
+
+    setDeleteTarget(null);
+    showAlert("warning", `Profile "${removed.companyName}" deleted.`);
+  };
+
+  const handleCopy = async (p: CompanyProfile) => {
+    const text = formatOfficialDetails(p);
     try {
-      // Connect your profile update API here.
-      // Example:
-      // await updateProfile(formData);
-
-      setShowSuccess(true);
-    } catch (error) {
-      setShowError(true);
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+      setCopiedId(p.id);
+      setTimeout(() => {
+        setCopiedId((prev) => (prev === p.id ? null : prev));
+      }, 2000);
+      showAlert(
+        "success",
+        `"${p.companyName}" details copied in official format.`,
+      );
+    } catch {
+      showAlert("error", "Failed to copy company details.");
     }
   };
 
-  // Reset Form
-  const handleReset = () => {
-    formRef.current?.reset();
+  const selectedProfile = useMemo(
+    () => profiles.find((p) => p.id === selectedId) ?? null,
+    [profiles, selectedId],
+  );
 
-    setProfileImage("/avatar.png");
-    setPharmacyLogo(null);
-    setShowPass(false);
+  const isEditing = editingId !== null;
 
-    setShowSuccess(false);
-    setShowError(false);
-  };
+  /* -------------------- Render -------------------- */
 
   return (
     <Box sx={{ width: "100%", pb: 4 }}>
-
       {/* ALERTS */}
+      {alert && (
+        <Alert
+          key={alert.id}
+          id={alert.id}
+          type={alert.type}
+          message={alert.message}
+        />
+      )}
 
-{alert && (
-  <Alert
-    key={alert.id}          
-    id={alert.id}           
-    type={alert.type}
-    message={alert.message}
-  />
-)}
+      {/* DELETE CONFIRMATION DIALOG */}
+      <Dialog
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 700 }}>Delete Profile</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete{" "}
+            <strong>{deleteTarget?.companyName}</strong>? This action cannot be
+            undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setDeleteTarget(null)}
+            variant="outlined"
+            color="inherit"
+            sx={{ textTransform: "none", borderRadius: "8px" }}
+          >
+            No, Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            variant="contained"
+            color="error"
+            sx={{
+              textTransform: "none",
+              borderRadius: "8px",
+              boxShadow: "none",
+            }}
+          >
+            Yes, Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* PAGE HEADER */}
-
       <Stack
         direction={{ xs: "column", sm: "row" }}
         justifyContent="space-between"
@@ -137,222 +335,201 @@ const showAlert = (type: AlertColor, message: string) => {
         mb={3}
       >
         <Box>
-          <Typography
-            variant="h5"
-            fontWeight={700}
-            color="#1e293b"
-          >
-            Profile & Pharmacy Details
+          <Typography variant="h5" fontWeight={700} color="#1e293b">
+            Company Profiles
           </Typography>
-
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            mt={0.5}
-          >
-            Manage your personal information and pharmacy business details.
+          <Typography variant="body2" color="text.secondary" mt={0.5}>
+            Add multiple company profiles and select one to use across the
+            project.
           </Typography>
         </Box>
 
         <Chip
-          label="Super Admin"
-          color="primary"
-          variant="outlined"
-          sx={{ fontWeight: 600 }}
+          label={
+            selectedProfile
+              ? `Active: ${selectedProfile.companyName}`
+              : "No Profile Selected"
+          }
+          color={selectedProfile ? "primary" : "default"}
+          variant={selectedProfile ? "filled" : "outlined"}
+          sx={{
+            fontWeight: 600,
+            maxWidth: 280,
+            "& .MuiChip-label": {
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            },
+          }}
         />
       </Stack>
 
-      <form ref={formRef} onSubmit={handleSubmit}>
-
-        {/* ================================= */}
-        {/* SECTION 1: PERSONAL INFORMATION */}
-        {/* ================================= */}
-
-        <Card
-          elevation={0}
-          sx={{
-            border: "1px solid #e8edf3",
-            borderRadius: "14px",
-            mb: 3,
-          }}
-        >
-          <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-
-            <Stack
-              direction="row"
-              alignItems="center"
-              spacing={1.5}
-              mb={3}
+      {/* ================================================== */}
+      {/* SECTION 1: ADD / EDIT PROFILE FORM                 */}
+      {/* ================================================== */}
+      <Card
+        ref={formCardRef}
+        elevation={0}
+        sx={{ border: "1px solid #e8edf3", borderRadius: "14px", mb: 3 }}
+      >
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+          <Stack direction="row" alignItems="center" spacing={1.5} mb={3}>
+            <Avatar
+              sx={{
+                bgcolor: isEditing ? "#fff7ed" : "#eff6ff",
+                color: isEditing ? "#ea580c" : "#2563eb",
+                borderRadius: "10px",
+              }}
             >
-              <Avatar
-                sx={{
-                  bgcolor: "#eff6ff",
-                  color: "#2563eb",
-                  borderRadius: "10px",
-                }}
-              >
-                <PersonOutline />
-              </Avatar>
+              {isEditing ? <EditOutlined /> : <AddBusinessOutlined />}
+            </Avatar>
 
-              <Box>
-                <Typography variant="h6" fontWeight={700}>
-                  Personal Information
-                </Typography>
+            <Box>
+              <Typography variant="h6" fontWeight={700}>
+                {isEditing
+                  ? "Update Company Profile"
+                  : "Add New Company Profile"}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {isEditing
+                  ? "Modify the company details below and click “Update Profile”."
+                  : "Enter the company details and click “Save Profile”."}
+              </Typography>
+            </Box>
+          </Stack>
 
-                <Typography variant="caption" color="text.secondary">
-                  Your personal account information
-                </Typography>
-              </Box>
-            </Stack>
+          <Divider sx={{ mb: 3 }} />
 
-            <Divider sx={{ mb: 3 }} />
-
-            {/* PROFILE IMAGE */}
-
-            <Stack
-              direction="row"
-              spacing={2}
-              alignItems="center"
-              mb={3}
-            >
-              <Box position="relative">
-                <Avatar
-                  src={profileImage}
-                  sx={{
-                    width: 76,
-                    height: 76,
-                    border: "3px solid #eff6ff",
-                  }}
-                />
-
-                <IconButton
-                  component="label"
-                  size="small"
-                  sx={{
-                    position: "absolute",
-                    bottom: -4,
-                    right: -4,
-                    bgcolor: "#2563eb",
-                    color: "#fff",
-                    width: 28,
-                    height: 28,
-                    "&:hover": {
-                      bgcolor: "#1d4ed8",
-                    },
-                  }}
-                >
-                  <CameraAltOutlined sx={{ fontSize: 16 }} />
-
-                  <input
-                    hidden
-                    type="file"
-                    accept="image/*"
-                    onChange={handleProfileImage}
-                  />
-                </IconButton>
-              </Box>
-
-              <Box>
-                <Typography fontWeight={700} variant="body1">
-                  Profile Photo
-                </Typography>
-
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  display="block"
-                >
-                  JPG or PNG, maximum 2MB
-                </Typography>
-
-                <Button
-                  component="label"
-                  size="small"
-                  startIcon={<CloudUpload />}
-                  sx={{ mt: 0.5 }}
-                >
-                  Change Photo
-
-                  <input
-                    hidden
-                    type="file"
-                    accept="image/*"
-                    onChange={handleProfileImage}
-                  />
-                </Button>
-              </Box>
-            </Stack>
-
-            {/* PERSONAL FIELDS */}
-
+          <Box component="form" onSubmit={handleSave} noValidate>
             <Grid container spacing={2.5}>
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
-                  label="Full Name"
-                  name="fullName"
+                  label="Company Name"
+                  name="companyName"
                   size="small"
                   fullWidth
-                  defaultValue="Faisal BARKATI"
                   required
+                  value={form.companyName}
+                  onChange={handleChange}
+                  error={!!errors.companyName}
+                  helperText={errors.companyName || undefined}
                 />
               </Grid>
 
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
-                  label="Username"
-                  name="username"
+                  label="Company Phone Number"
+                  name="companyPhone"
                   size="small"
                   fullWidth
-                  defaultValue="admin_pharmacy"
                   required
+                  value={form.companyPhone}
+                  onChange={handleChange}
+                  inputProps={{ maxLength: 11 }}
+                  error={!!errors.companyPhone}
+                  helperText={errors.companyPhone || undefined}
                 />
               </Grid>
 
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
-                  label="Email Address"
-                  name="email"
-                  type="email"
+                  label="Company WhatsApp Number"
+                  name="companyWhatsapp"
                   size="small"
                   fullWidth
-                  defaultValue="admin@pharmacy.com"
-                  required
+                  inputProps={{ maxLength: 11 }}
+                  value={form.companyWhatsapp}
+                  onChange={handleChange}
                 />
               </Grid>
 
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
-                  label="Mobile Number"
-                  name="mobile"
+                  label="Company NTN Number"
+                  name="companyNtn"
+                  size="small"
+                  inputProps={{ maxLength: 13 }}
+                  fullWidth
+                  value={form.companyNtn}
+                  onChange={handleChange}
+                />
+              </Grid>
+
+              <Grid size={12}>
+                <TextField
+                  label="Company Address"
+                  name="companyAddress"
                   size="small"
                   fullWidth
-                  defaultValue="0301-2345678"
+                  required
+                  multiline
+                  rows={2}
+                  value={form.companyAddress}
+                  onChange={handleChange}
+                  error={!!errors.companyAddress}
+                  helperText={errors.companyAddress || undefined}
                 />
               </Grid>
             </Grid>
-          </CardContent>
-        </Card>
-
-        {/* ================================= */}
-        {/* SECTION 2: PHARMACY INFORMATION */}
-        {/* ================================= */}
-
-        <Card
-          elevation={0}
-          sx={{
-            border: "1px solid #e8edf3",
-            borderRadius: "14px",
-            mb: 3,
-          }}
-        >
-          <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
 
             <Stack
               direction="row"
-              alignItems="center"
+              justifyContent="flex-end"
               spacing={1.5}
-              mb={3}
+              mt={3}
+              flexWrap="wrap"
             >
+              <Button
+                type="button"
+                variant="outlined"
+                color="inherit"
+                startIcon={isEditing ? <Close /> : <RestartAlt />}
+                onClick={handleReset}
+                sx={{
+                  borderRadius: "9px",
+                  px: 3,
+                  textTransform: "none",
+                }}
+              >
+                {isEditing ? "Cancel" : "Reset"}
+              </Button>
+
+              <Button
+                type="submit"
+                variant="contained"
+                startIcon={<Save />}
+                sx={{
+                  bgcolor: "#2563eb",
+                  borderRadius: "9px",
+                  px: 3,
+                  textTransform: "none",
+                  boxShadow: "none",
+                  "&:hover": { bgcolor: "#1d4ed8", boxShadow: "none" },
+                }}
+              >
+                {isEditing ? "Update Profile" : "Save Profile"}
+              </Button>
+            </Stack>
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* ================================================== */}
+      {/* SECTION 2: PROFILES GRID                           */}
+      {/* ================================================== */}
+      <Card
+        elevation={0}
+        sx={{ border: "1px solid #e8edf3", borderRadius: "14px" }}
+      >
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            flexWrap="wrap"
+            gap={1.5}
+            mb={3}
+          >
+            <Stack direction="row" alignItems="center" spacing={1.5}>
               <Avatar
                 sx={{
                   bgcolor: "#f0fdf4",
@@ -360,328 +537,219 @@ const showAlert = (type: AlertColor, message: string) => {
                   borderRadius: "10px",
                 }}
               >
-                <LocalPharmacyOutlined />
+                <BusinessOutlined />
               </Avatar>
 
               <Box>
                 <Typography variant="h6" fontWeight={700}>
-                  Pharmacy Business Profile
+                  Saved Profiles
                 </Typography>
-
                 <Typography variant="caption" color="text.secondary">
-                  Business details used on printed and PDF invoices
+                  Click any profile card to make it the selected profile.
                 </Typography>
               </Box>
             </Stack>
 
-            <Divider sx={{ mb: 3 }} />
+            <Chip
+              size="small"
+              variant="outlined"
+              label={`${profiles.length} Profile${profiles.length === 1 ? "" : "s"}`}
+              sx={{ fontWeight: 600 }}
+            />
+          </Stack>
 
-            {/* PHARMACY LOGO */}
+          <Divider sx={{ mb: 3 }} />
 
+          {profiles.length === 0 ? (
             <Box
               sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 2,
-                p: 2,
-                mb: 3,
-                bgcolor: "#f8fafc",
+                p: 5,
+                textAlign: "center",
                 border: "1px dashed #cbd5e1",
                 borderRadius: "12px",
-                flexWrap: "wrap",
+                bgcolor: "#f8fafc",
               }}
             >
-              <Avatar
-                variant="rounded"
-                src={pharmacyLogo || undefined}
-                sx={{
-                  width: 72,
-                  height: 72,
-                  bgcolor: "#fff",
-                  color: "#94a3b8",
-                  border: "1px solid #e2e8f0",
-                }}
-              >
-                {!pharmacyLogo && <BusinessOutlined fontSize="large" />}
-              </Avatar>
-
-              <Box flex={1}>
-                <Typography fontWeight={700}>
-                  Pharmacy Logo
-                </Typography>
-
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  display="block"
-                  mb={1}
-                >
-                  This logo will appear on invoices and PDF documents.
-                </Typography>
-
-                <Button
-                  component="label"
-                  variant="contained"
-                  size="small"
-                  startIcon={<CloudUpload />}
-                  sx={{
-                    bgcolor: "#2563eb",
-                    textTransform: "none",
-                    boxShadow: "none",
-                    "&:hover": { bgcolor: "#1d4ed8", boxShadow: "none" },
-                  }}
-                >
-                  Upload Logo
-
-                  <input
-                    hidden
-                    type="file"
-                    accept="image/*"
-                    onChange={handleLogoUpload}
-                  />
-                </Button>
-              </Box>
+              <BusinessOutlined
+                sx={{ fontSize: 42, color: "#cbd5e1", mb: 1 }}
+              />
+              <Typography fontWeight={600} color="#64748b">
+                No company profiles yet
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Add your first company profile using the form above.
+              </Typography>
             </Box>
+          ) : (
+            <Grid container spacing={2}>
+              {profiles.map((p) => {
+                const isSelected = selectedId === p.id;
+                const isCopied = copiedId === p.id;
 
-            {/* PHARMACY FIELDS */}
-
-            <Grid container spacing={2.5}>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField
-                  label="Pharmacy Name"
-                  name="pharmacyName"
-                  size="small"
-                  fullWidth
-                  required
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField
-                  label="Tagline / Slogan"
-                  name="tagline"
-                  size="small"
-                  fullWidth
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField
-                  label="TRN / Tax Number"
-                  name="taxNumber"
-                  size="small"
-                  fullWidth
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField
-                  label="Pharmacy / Drug License No."
-                  name="licenseNumber"
-                  size="small"
-                  fullWidth
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField
-                  label="Business Phone"
-                  name="businessPhone"
-                  size="small"
-                  fullWidth
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField
-                  label="WhatsApp Number (Digital Delivery)"
-                  name="whatsapp"
-                  size="small"
-                  fullWidth
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField
-                  label="Business Email"
-                  name="businessEmail"
-                  type="email"
-                  size="small"
-                  fullWidth
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField
-                  label="City & Country"
-                  name="city"
-                  size="small"
-                  fullWidth
-                  defaultValue="Karachi, Pakistan"
-                />
-              </Grid>
-
-              <Grid size={12}>
-                <TextField
-                  label="Full Shop Address"
-                  name="address"
-                  size="small"
-                  fullWidth
-                  multiline
-                  rows={2}
-                />
-              </Grid>
-
-              <Grid size={12}>
-                <TextField
-                  label="Invoice Footer Note"
-                  name="invoiceNote"
-                  size="small"
-                  fullWidth
-                  multiline
-                  rows={2}
-                  placeholder="e.g., Medicines once sold cannot be returned without bill."
-                />
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-
-        {/* ================================= */}
-        {/* SECTION 3: SECURITY */}
-        {/* ================================= */}
-
-        <Card
-          elevation={0}
-          sx={{
-            border: "1px solid #e8edf3",
-            borderRadius: "14px",
-            mb: 3,
-          }}
-        >
-          <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-
-            <Stack
-              direction="row"
-              alignItems="center"
-              spacing={1.5}
-              mb={3}
-            >
-              <Avatar
-                sx={{
-                  bgcolor: "#fff7ed",
-                  color: "#ea580c",
-                  borderRadius: "10px",
-                }}
-              >
-                <LockOutlined />
-              </Avatar>
-
-              <Box>
-                <Typography variant="h6" fontWeight={700}>
-                  Security & Password
-                </Typography>
-
-                <Typography variant="caption" color="text.secondary">
-                  Keep your account secure
-                </Typography>
-              </Box>
-            </Stack>
-
-            <Divider sx={{ mb: 3 }} />
-
-            <Grid container spacing={2.5}>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  label="Current Password"
-                  name="currentPassword"
-                  type="password"
-                  size="small"
-                  fullWidth
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  label="New Password"
-                  name="newPassword"
-                  type={showPass ? "text" : "password"}
-                  size="small"
-                  fullWidth
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => setShowPass(!showPass)}
-                          edge="end"
-                          size="small"
+                return (
+                  <Grid key={p.id} size={{ xs: 12, sm: 6, md: 4 }}>
+                    <Card
+                      onClick={() => handleSelect(p.id)}
+                      elevation={0}
+                      sx={{
+                        position: "relative",
+                        cursor: "pointer",
+                        border: isSelected
+                          ? "2px solid #2563eb"
+                          : "1px solid #e8edf3",
+                        borderRadius: "12px",
+                        bgcolor: isSelected ? "#f5f9ff" : "#fff",
+                        transition: "all .15s ease",
+                        "&:hover": {
+                          borderColor: "#2563eb",
+                          boxShadow: "0 4px 14px rgba(37,99,235,0.08)",
+                        },
+                      }}
+                    >
+                      <CardContent sx={{ p: 2 }}>
+                        <Stack
+                          direction="row"
+                          alignItems="flex-start"
+                          justifyContent="space-between"
+                          spacing={1}
                         >
-                          {showPass ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
+                          <Stack
+                            direction="row"
+                            alignItems="center"
+                            spacing={1.5}
+                            sx={{ minWidth: 0 }}
+                          >
+                            <Avatar
+                              sx={{
+                                bgcolor: "#eff6ff",
+                                color: "#2563eb",
+                                width: 40,
+                                height: 40,
+                              }}
+                            >
+                              <BusinessOutlined fontSize="small" />
+                            </Avatar>
+                            <Box sx={{ minWidth: 0 }}>
+                              <Typography
+                                fontWeight={700}
+                                noWrap
+                                sx={{ maxWidth: 160 }}
+                              >
+                                {p.companyName}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                Company Profile
+                              </Typography>
+                            </Box>
+                          </Stack>
 
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  label="Confirm New Password"
-                  name="confirmPassword"
-                  type="password"
-                  size="small"
-                  fullWidth
-                />
-              </Grid>
+                          <Stack
+                            direction="row"
+                            alignItems="center"
+                            spacing={0.25}
+                          >
+                            {isSelected && (
+                              <CheckCircle
+                                sx={{
+                                  color: "#2563eb",
+                                  fontSize: 20,
+                                  mr: 0.25,
+                                }}
+                              />
+                            )}
+                            <Tooltip title="Copy official details">
+                              <IconButton
+                                size="small"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCopy(p);
+                                }}
+                                sx={{
+                                  color: isCopied ? "#16a34a" : "#94a3b8",
+                                  "&:hover": { color: "#16a34a" },
+                                }}
+                              >
+                                {isCopied ? (
+                                  <Check fontSize="small" />
+                                ) : (
+                                  <ContentCopyOutlined fontSize="small" />
+                                )}
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Edit profile">
+                              <IconButton
+                                size="small"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditStart(p);
+                                }}
+                                sx={{
+                                  color: "#94a3b8",
+                                  "&:hover": { color: "#2563eb" },
+                                }}
+                              >
+                                <EditOutlined fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Delete profile">
+                              <IconButton
+                                size="small"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteRequest(p);
+                                }}
+                                sx={{
+                                  color: "#94a3b8",
+                                  "&:hover": { color: "#dc2626" },
+                                }}
+                              >
+                                <DeleteOutline fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
+                        </Stack>
+
+                        <Divider sx={{ my: 1.5 }} />
+
+                        <Stack spacing={1}>
+                          <InfoRow
+                            icon={<LocationOnOutlined />}
+                            text={p.companyAddress}
+                          />
+                          <InfoRow
+                            icon={<PhoneOutlined />}
+                            text={p.companyPhone}
+                          />
+                          <InfoRow
+                            icon={<WhatsApp />}
+                            text={p.companyWhatsapp}
+                          />
+                          <InfoRow
+                            icon={<BadgeOutlined />}
+                            text={p.companyNtn}
+                          />
+                        </Stack>
+
+                        {isSelected && (
+                          <Chip
+                            label="Selected"
+                            size="small"
+                            color="primary"
+                            sx={{ mt: 1.5, fontWeight: 600 }}
+                          />
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                );
+              })}
             </Grid>
-          </CardContent>
-        </Card>
-
-        {/* ================================= */}
-        {/* SAVE & RESET BUTTONS */}
-        {/* ================================= */}
-
-        <Stack
-          direction="row"
-          justifyContent="flex-end"
-          spacing={1.5}
-          flexWrap="wrap"
-        >
-          <Button
-            type="button"
-            variant="outlined"
-            color="inherit"
-            onClick={handleReset}
-            sx={{
-              borderRadius: "9px",
-              px: 3,
-              textTransform: "none",
-            }}
-          >
-            Reset
-          </Button>
-
-          <Button
-            type="submit"
-            variant="contained"
-            startIcon={<Save />}
-            sx={{
-              bgcolor: "#2563eb",
-              borderRadius: "9px",
-              px: 3,
-              textTransform: "none",
-              boxShadow: "none",
-              "&:hover": {
-                bgcolor: "#1d4ed8",
-                boxShadow: "none",
-              },
-            }}
-          >
-            Save Changes
-          </Button>
-        </Stack>
-
-      </form>
+          )}
+        </CardContent>
+      </Card>
     </Box>
   );
 }
