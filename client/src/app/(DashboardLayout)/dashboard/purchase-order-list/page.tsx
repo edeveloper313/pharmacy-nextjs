@@ -65,7 +65,7 @@ type Product = {
   defaultPrice: number;
 };
 
-type SalesEntry = {
+type PuchaseEntry = {
   id: number;
   serialNumber: string;
   productName: string;
@@ -80,12 +80,12 @@ type SalesEntry = {
   lineTotal: number;
 };
 
-type SalesOrder = {
+type PuchaseOrder = {
   id: string;
   orderNumber: string;
   orderDate: string;
   customer: Customer;
-  entries: SalesEntry[];
+  entries: PuchaseEntry[];
 };
 
 type EntryForm = {
@@ -208,13 +208,13 @@ const cardSx = {
   boxShadow: "none",
 };
 
-const sumOrder = (entries: SalesEntry[]) => ({
+const sumOrder = (entries: PuchaseEntry[]) => ({
   totalQuantity: entries.reduce((sum, item) => sum + item.quantity, 0),
   totalDiscount: entries.reduce((sum, item) => sum + item.discountAmount, 0),
   grandTotal: entries.reduce((sum, item) => sum + item.lineTotal, 0),
 });
 
-const demoOrders: SalesOrder[] = [
+const demoOrders: PuchaseOrder[] = [
   {
     id: "ORD-001",
     orderNumber: "SO-481205",
@@ -346,16 +346,16 @@ function SectionHeading({
   );
 }
 
-export default function SaleProductListPage() {
-  const [orders, setOrders] = useState<SalesOrder[]>(demoOrders);
+export default function PuchaseProductListPage() {
+  const [orders, setOrders] = useState<PuchaseOrder[]>(demoOrders);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<
     "date" | "customer" | "amount" | "items"
   >("date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  const [viewOrder, setViewOrder] = useState<SalesOrder | null>(null);
-  const [editingOrder, setEditingOrder] = useState<SalesOrder | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<SalesOrder | null>(null);
+  const [viewOrder, setViewOrder] = useState<PuchaseOrder | null>(null);
+  const [editingOrder, setEditingOrder] = useState<PuchaseOrder | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<PuchaseOrder | null>(null);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -403,15 +403,15 @@ export default function SaleProductListPage() {
       current.filter((order) => order.id !== deleteTarget.id),
     );
     setDeleteTarget(null);
-    notify("success", "Sales order deleted successfully.");
+    notify("success", "Puchase order deleted successfully.");
   };
 
-  const saveUpdatedOrder = (updated: SalesOrder) => {
+  const saveUpdatedOrder = (updated: PuchaseOrder) => {
     setOrders((current) =>
       current.map((order) => (order.id === updated.id ? updated : order)),
     );
     setEditingOrder(null);
-    notify("success", "Sales order updated successfully.");
+    notify("success", "Puchase order updated successfully.");
   };
 
   return (
@@ -425,15 +425,15 @@ export default function SaleProductListPage() {
       >
         <Box>
           <Typography variant="h5" fontWeight={800} color="#1e293b">
-            Sale Product List
+            Puchase Product List
           </Typography>
           <Typography variant="body2" color="text.secondary" mt={0.5}>
-            Browse sales orders, review customer-wise details, and manage order
+            Browse purchase orders, review customer-wise details, and manage order
             entries.
           </Typography>
         </Box>
         <Chip
-          label={`${orders.length} SALES ORDERS`}
+          label={`${orders.length} PURCHASE ORDERS`}
           sx={{
             bgcolor: "#eff6ff",
             color: "#2563eb",
@@ -451,7 +451,7 @@ export default function SaleProductListPage() {
           <Stack spacing={2.5}>
             <SectionHeading
               icon={<ReceiptLongOutlined />}
-              title="Sales Order Summary"
+              title="Puchase Order Summary"
               subtitle="Search and sort orders. Open View to see complete customer and product details."
             />
             <GridLegacy container spacing={2}>
@@ -462,7 +462,7 @@ export default function SaleProductListPage() {
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Search order number, customer, product or ID..."
-                  aria-label="Search sales orders"
+                  aria-label="Search purchase orders"
                   sx={fieldSx}
                   InputProps={{
                     startAdornment: (
@@ -536,7 +536,7 @@ export default function SaleProductListPage() {
                 },
               }}
             >
-              <Table size="small" aria-label="Sales orders summary">
+              <Table size="small" aria-label="Puchase orders summary">
                 <TableHead>
                   <TableRow sx={{ bgcolor: "#f8fafc" }}>
                     {[
@@ -674,7 +674,7 @@ export default function SaleProductListPage() {
                             >
                               Update
                             </Button>
-                            <Tooltip title="Delete sales order">
+                            <Tooltip title="Delete purchase order">
                               <IconButton
                                 size="small"
                                 color="error"
@@ -697,7 +697,7 @@ export default function SaleProductListPage() {
                     <TableRow>
                       <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
                         <Typography fontWeight={700} color="#475569">
-                          No sales orders found
+                          No purchase orders found
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
                           Try another search term.
@@ -728,7 +728,7 @@ export default function SaleProductListPage() {
               >
                 <Box>
                   <Typography fontWeight={800} fontSize={18}>
-                    Sales Order Details
+                    Puchase Order Details
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     {viewOrder.orderNumber}
@@ -794,7 +794,7 @@ export default function SaleProductListPage() {
                   <SectionHeading
                     icon={<Inventory2Outlined />}
                     title="Product Details"
-                    subtitle="All products included in this sales order"
+                    subtitle="All products included in this purchase order"
                   />
                   <OrderEntriesTable entries={viewOrder.entries} />
                 </Box>
@@ -844,7 +844,7 @@ export default function SaleProductListPage() {
         <DialogTitle sx={{ fontWeight: 800 }}>Confirm Delete</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary">
-            Are you sure you want to delete this sales order? This action cannot
+            Are you sure you want to delete this purchase order? This action cannot
             be undone.
           </Typography>
           {deleteTarget && (
@@ -882,7 +882,7 @@ export default function SaleProductListPage() {
   );
 }
 
-function OrderEntriesTable({ entries }: { entries: SalesEntry[] }) {
+function OrderEntriesTable({ entries }: { entries: PuchaseEntry[] }) {
   return (
     <TableContainer
       sx={{ border: "1px solid #e8edf3", borderRadius: 2, overflowX: "auto" }}
@@ -897,7 +897,7 @@ function OrderEntriesTable({ entries }: { entries: SalesEntry[] }) {
               "Product Type",
               "Qty",
               "Regular Price",
-              "Sale Price",
+              "Puchase Price",
               "Discount",
               "Line Total",
             ].map((label) => (
@@ -964,7 +964,7 @@ function OrderEntriesTable({ entries }: { entries: SalesEntry[] }) {
   );
 }
 
-function OrderTotals({ entries }: { entries: SalesEntry[] }) {
+function OrderTotals({ entries }: { entries: PuchaseEntry[] }) {
   const totals = sumOrder(entries);
   return (
     <Box
@@ -1014,13 +1014,13 @@ function OrderUpdateDialog({
   onCancel,
   onSave,
 }: {
-  order: SalesOrder;
+  order: PuchaseOrder;
   onCancel: () => void;
-  onSave: (order: SalesOrder) => void;
+  onSave: (order: PuchaseOrder) => void;
 }) {
   const [customer, setCustomer] = useState<Customer>(order.customer);
   const [orderDate, setOrderDate] = useState(order.orderDate);
-  const [entries, setEntries] = useState<SalesEntry[]>(order.entries);
+  const [entries, setEntries] = useState<PuchaseEntry[]>(order.entries);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [form, setForm] = useState<EntryForm>({
     serialNumber: `SR-${Math.floor(10000 + Math.random() * 90000)}`,
@@ -1086,7 +1086,7 @@ function OrderUpdateDialog({
     });
   };
 
-  const startEditEntry = (entry: SalesEntry) => {
+  const startEditEntry = (entry: PuchaseEntry) => {
     const product =
       products.find((item) => item.id === entry.productId) || null;
     if (!product) return;
@@ -1123,7 +1123,7 @@ function OrderUpdateDialog({
     }
     if (belowRegularPrice) {
       setError(
-        `Sale price cannot be less than the regular price (${money(regularPrice)}).`,
+        `Puchase price cannot be less than the regular price (${money(regularPrice)}).`,
       );
       return;
     }
@@ -1138,7 +1138,7 @@ function OrderUpdateDialog({
       setError("Master Product price is fixed and cannot be changed.");
       return;
     }
-    const newEntry: SalesEntry = {
+    const newEntry: PuchaseEntry = {
       id: editingEntryId ?? Date.now(),
       serialNumber: form.serialNumber,
       productName: selectedProduct.name,
@@ -1175,7 +1175,7 @@ function OrderUpdateDialog({
 
   const saveOrder = () => {
     if (entries.length === 0) {
-      setError("A sales order must contain at least one product.");
+      setError("A purchase order must contain at least one product.");
       return;
     }
     onSave({ ...order, customer, orderDate, entries });
@@ -1191,7 +1191,7 @@ function OrderUpdateDialog({
         >
           <Box>
             <Typography fontWeight={800} fontSize={18}>
-              Update Sales Order
+              Update Puchase Order
             </Typography>
             <Typography variant="caption" color="text.secondary">
               {order.orderNumber}
@@ -1293,7 +1293,7 @@ function OrderUpdateDialog({
             <SectionHeading
               icon={<Inventory2Outlined />}
               title="Product Entry"
-              subtitle="Apply the same customer-wise Master Product, price and stock rules as Sales Order Entry."
+              subtitle="Apply the same customer-wise Master Product, price and stock rules as Puchase Order Entry."
             />
             <GridLegacy container spacing={2}>
               <GridLegacy item xs={12} sm={6}>
@@ -1424,7 +1424,7 @@ function OrderUpdateDialog({
                       fullWidth
                       size="small"
                       type="number"
-                      label={master ? "Price (Fixed)" : "Sale Price"}
+                      label={master ? "Price (Fixed)" : "Puchase Price"}
                       value={form.tp}
                       onChange={(event) =>
                         setForm((current) => ({
@@ -1445,7 +1445,7 @@ function OrderUpdateDialog({
                       helperText={
                         master
                           ? "Master Product price cannot be changed."
-                          : "Sale price must be equal to or greater than Regular Price."
+                          : "Puchase price must be equal to or greater than Regular Price."
                       }
                       sx={fieldSx}
                     />
