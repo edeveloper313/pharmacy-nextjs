@@ -114,18 +114,7 @@ const Menuitems = [
     icon: IconAddressBook,
     href: "/dashboard/customer",
   },
-  {
-    id: uniqueId(),
-    title: "Client Management",
-    icon: IconAddressBook,
-    href: "/dashboard/client-management",
-  },
-  {
-    id: uniqueId(),
-    title: "Master Client Entry",
-    icon: IconUserPlus,
-    href: "/dashboard/master-client-entry",
-  },
+  
 
   // =========================
   // 5. ACCOUNTS
