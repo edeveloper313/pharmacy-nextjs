@@ -12,6 +12,8 @@ import {
   IconHeartHandshake,
   IconHistory,
   IconListDetails,
+  IconReceipt,
+  IconFile,
 } from "@tabler/icons-react";
 
 import { uniqueId } from "lodash";
@@ -65,48 +67,37 @@ const Menuitems = [
     href: "/dashboard/all-products",
   },
   // =========================
-  // 3. SALE PORDUCT
+  // 3. PURCHASE PORDUCT
   // =========================
   {
     navlabel: true,
-    subheader: "SALE PRODUCT ",
+    subheader: "PURCHASE MANAGEMENT ",
   },
-  {
-    id: uniqueId(),
-    title: "Sale Order Entry",
-    icon: IconShoppingCart,
-    href: "/dashboard/sale-order-entry",
-  },
-  {
-    id: uniqueId(),
-    title: "Sale Order List",
-    icon: IconListDetails,
-    href: "/dashboard/sale-order-list",
-  },
-  // =========================
-  // 3. PURCHASE MANAGEMENT
-  // =========================
-  {
-    navlabel: true,
-    subheader: "PURCHASE MANAGEMENT",
-  },
-  // {
-  //   id: uniqueId(),
-  //   title: "Supplier",
-  //   icon: IconTruck,
-  //   href: "/dashboard/supplier",
-  // },
   {
     id: uniqueId(),
     title: "Purchase Order",
-    icon: IconUserPlus,
+    icon: IconFile,
     href: "/dashboard/purchase-order",
   },
   {
     id: uniqueId(),
-    title: "Purchase Order Status",
-    icon: IconChartBar,
-    href: "/dashboard/purchase-order-status",
+    title: "Purchase Order List",
+    icon: IconListDetails,
+    href: "/dashboard/purchase-order-list",
+  },
+
+  // =========================
+  // 3. INVOICE MANAGEMENT
+  // =========================
+  {
+    navlabel: true,
+    subheader: "INVOICE MANAGEMENT",
+  },
+  {
+    id: uniqueId(),
+    title: "Invoice",
+    icon: IconReceipt,
+    href: "/dashboard/invoice",
   },
 
   // =========================
